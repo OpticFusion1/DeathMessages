@@ -2,12 +2,16 @@ package dev.mrshawn.deathmessages.files;
 
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
-
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class FileSettings<C extends Enum<C>> {
+
     private final JavaPlugin plugin;
     private final String fileName;
     private final File file;
@@ -45,17 +49,16 @@ public class FileSettings<C extends Enum<C>> {
             }
 
             String configPath = configEnum.getPath();
-            if (yamlConfig.contains(configPath)) {
-                values.put(value, yamlConfig.get(configPath));
-            } else {
+            if (!yamlConfig.contains(configPath)) {
                 Object defaultValue = configEnum.getDefault();
                 if (defaultValue != null) {
                     yamlConfig.set(configPath, defaultValue);
                     values.put(value, defaultValue);
                 }
+                continue;
             }
+            values.put(value, yamlConfig.get(configPath));
         }
-
         return this;
     }
 

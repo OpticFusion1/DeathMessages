@@ -11,29 +11,29 @@ import org.bukkit.entity.Player;
 
 public class CommandDeathMessagesToggle implements CommandExecutor {
 
-	@Override
-	public boolean onCommand(CommandSender sender, Command command, String cmdLabel, String[] args) {
-		if (sender instanceof Player && !sender.hasPermission(Permission.DEATHMESSAGES_COMMAND.getValue())) {
-			sender.sendMessage(Assets.formatMessage("Commands.DeathMessages.No-Permission"));
-			return false;
-		}
-		if (!(sender instanceof Player player)) {
-			sender.sendMessage(Assets.formatMessage("Commands.DeathMessages.Player-Only-Command"));
-			return false;
-		}
-		if (!player.hasPermission(Permission.DEATHMESSAGES_COMMAND_TOGGLE.getValue())) {
-			player.sendMessage(Assets.formatMessage("Commands.DeathMessages.No-Permission"));
-			return false;
-		}
-		PlayerManager pm = PlayerManager.getPlayer(player);
-		boolean b = UserData.getInstance().getConfig().getBoolean(player.getUniqueId() + ".messages-enabled");
-		if (b) {
-			pm.setMessagesEnabled(false);
-			player.sendMessage(Assets.formatMessage("Commands.DeathMessages.Sub-Commands.Toggle.Toggle-Off"));
-		} else {
-			pm.setMessagesEnabled(true);
-			player.sendMessage(Assets.formatMessage("Commands.DeathMessages.Sub-Commands.Toggle.Toggle-On"));
-		}
-		return false;
-	}
+    @Override
+    public boolean onCommand(CommandSender sender, Command command, String cmdLabel, String[] args) {
+        if (sender instanceof Player && !sender.hasPermission(Permission.DEATHMESSAGES_COMMAND.getValue())) {
+            sender.sendMessage(Assets.formatMessage("Commands.DeathMessages.No-Permission"));
+            return false;
+        }
+        if (!(sender instanceof Player player)) {
+            sender.sendMessage(Assets.formatMessage("Commands.DeathMessages.Player-Only-Command"));
+            return false;
+        }
+        if (!player.hasPermission(Permission.DEATHMESSAGES_COMMAND_TOGGLE.getValue())) {
+            player.sendMessage(Assets.formatMessage("Commands.DeathMessages.No-Permission"));
+            return false;
+        }
+        PlayerManager pm = PlayerManager.getPlayer(player);
+        boolean b = UserData.getInstance().getConfig().getBoolean(player.getUniqueId() + ".messages-enabled");
+        if (b) {
+            pm.setMessagesEnabled(false);
+            player.sendMessage(Assets.formatMessage("Commands.DeathMessages.Sub-Commands.Toggle.Toggle-Off"));
+        } else {
+            pm.setMessagesEnabled(true);
+            player.sendMessage(Assets.formatMessage("Commands.DeathMessages.Sub-Commands.Toggle.Toggle-On"));
+        }
+        return false;
+    }
 }
