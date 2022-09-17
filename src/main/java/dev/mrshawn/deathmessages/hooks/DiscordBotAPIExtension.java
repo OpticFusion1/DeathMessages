@@ -2,12 +2,12 @@ package dev.mrshawn.deathmessages.hooks;
 
 import dev.mrshawn.deathmessages.DeathMessages;
 import dev.mrshawn.deathmessages.api.PlayerManager;
-import dev.mrshawn.deathmessages.config.Messages;
 import dev.mrshawn.deathmessages.enums.MessageType;
 import dev.mrshawn.deathmessages.files.Config;
-import dev.mrshawn.deathmessages.files.FileSettings;
-import dev.mrshawn.deathmessages.kotlin.files.FileStore;
 import dev.mrshawn.deathmessages.utils.Assets;
+import dev.mrshawn.deathmessages.utils.CommentedConfiguration;
+import static github.scarsz.discordsrv.DiscordSRV.config;
+import java.awt.Color;
 import me.joshb.discordbotapi.server.DiscordBotAPI;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Guild;
@@ -19,22 +19,26 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.FallingBlock;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
-
-import java.awt.*;
 import java.time.Instant;
 import java.util.List;
-import java.util.logging.Level;
+import me.joshb.discordbotapi.bungee.config.Messages;
+import optic_fusion1.deathmessages.config.ConfigFile;
+import optic_fusion1.deathmessages.util.FileStore;
 
 public class DiscordBotAPIExtension {
 
-    private static final FileSettings<Config> config = FileStore.INSTANCE.getCONFIG();
+    private FileStore fileStore;
+    private DiscordAssets discordAssets;
+    private DeathMessages deathMessages;
 
-    public DiscordBotAPIExtension() {
-
+    public DiscordBotAPIExtension(FileStore fileStore, DiscordAssets discordAssets, DeathMessages deathMessages) {
+        this.fileStore = fileStore;
+        this.discordAssets = discordAssets;
+        this.deathMessages = deathMessages;
     }
 
     public void sendDiscordMessage(PlayerManager pm, MessageType messageType, String message) {
-        List<String> channels = DiscordAssets.getInstance().getIDs(messageType);
+        List<String> channels = discordAssets.getIDs(messageType);
         for (String groups : channels) {
             if (!groups.contains(":")) {
                 continue;
@@ -43,12 +47,12 @@ public class DiscordBotAPIExtension {
             String guildID = groupSplit[0];
             String channelID = groupSplit[1];
             if (DiscordBotAPI.getJDA().getGuildById(guildID) == null) {
-                DeathMessages.getInstance().getLogger().severe("Could not find the discord guild with ID: " + guildID);
+                deathMessages.getLogger().severe("Could not find the discord guild with ID: " + guildID);
                 continue;
             }
             Guild g = DiscordBotAPI.getJDA().getGuildById(guildID);
             if (g.getTextChannelById(channelID) == null) {
-                DeathMessages.getInstance().getLogger().severe("Could not find the discord text channel with ID: "
+                deathMessages.getLogger().severe("Could not find the discord text channel with ID: "
                         + channelID + " in guild: " + g.getName());
                 continue;
             }
@@ -79,7 +83,7 @@ public class DiscordBotAPIExtension {
 
     public void sendEntityDiscordMessage(String rawMessage, PlayerManager pm, Entity entity, boolean hasOwner, MessageType messageType) {
         String message = rawMessage;
-        List<String> channels = DiscordAssets.getInstance().getIDs(messageType);
+        List<String> channels = discordAssets.getIDs(messageType);
         for (String groups : channels) {
             if (!groups.contains(":")) {
                 continue;
@@ -88,18 +92,18 @@ public class DiscordBotAPIExtension {
             String guildID = groupSplit[0];
             String channelID = groupSplit[1];
             if (DiscordBotAPI.getJDA().getGuildById(guildID) == null) {
-                DeathMessages.getInstance().getLogger().severe("Could not find the discord guild with ID: " + guildID);
+                deathMessages.getLogger().severe("Could not find the discord guild with ID: " + guildID);
                 continue;
             }
             Guild g = DiscordBotAPI.getJDA().getGuildById(guildID);
             if (g.getTextChannelById(channelID) == null) {
-                DeathMessages.getInstance().getLogger().severe("Could not find the discord text channel with ID: "
+                deathMessages.getLogger().severe("Could not find the discord text channel with ID: "
                         + channelID + " in guild: " + g.getName());
                 continue;
             }
             TextChannel textChannel = g.getTextChannelById(channelID);
             if (getMessages().getBoolean("Discord.DeathMessage.Remove-Plugin-Prefix")
-                    && config.getBoolean(Config.ADD_PREFIX_TO_ALL_MESSAGES)) {
+                    && fileStore.getConfig().getBoolean(Config.ADD_PREFIX_TO_ALL_MESSAGES)) {
                 String prefix = Assets.colorize(getMessages().getString("Prefix"));
                 prefix = ChatColor.stripColor(prefix);
                 message = message.substring(prefix.length());
@@ -274,14 +278,14 @@ public class DiscordBotAPIExtension {
             }
             return getMessages().getInt("Discord.DeathMessage.Color", color);
         } catch (ClassNotFoundException | NoSuchFieldException | IllegalAccessException e) {
-            DeathMessages.getInstance().getLogger().severe("Error while parsing " + getMessages().getString("Discord.DeathMessage.Color") + " as a color!");
-            DeathMessages.getInstance().getLogger().severe("Make sure your using spigot for your server!");
+            deathMessages.getLogger().severe("Error while parsing " + getMessages().getString("Discord.DeathMessage.Color") + " as a color!");
+            deathMessages.getLogger().severe("Make sure your using spigot for your server!");
             return color;
         }
     }
 
-    private FileConfiguration getMessages() {
-        return Messages.getInstance().getConfig();
+    private CommentedConfiguration getMessages() {
+        return deathMessages.getConfigManager().getMessagesConfig().getConfig();
     }
 
 }

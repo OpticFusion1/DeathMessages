@@ -2,40 +2,40 @@ package dev.mrshawn.deathmessages.hooks;
 
 import dev.mrshawn.deathmessages.DeathMessages;
 import dev.mrshawn.deathmessages.api.PlayerManager;
-import dev.mrshawn.deathmessages.config.Messages;
 import dev.mrshawn.deathmessages.enums.MessageType;
 import dev.mrshawn.deathmessages.files.Config;
-import dev.mrshawn.deathmessages.files.FileSettings;
-import dev.mrshawn.deathmessages.kotlin.files.FileStore;
 import dev.mrshawn.deathmessages.utils.Assets;
+import dev.mrshawn.deathmessages.utils.CommentedConfiguration;
 import github.scarsz.discordsrv.dependencies.jda.api.EmbedBuilder;
 import github.scarsz.discordsrv.dependencies.jda.api.entities.Guild;
 import github.scarsz.discordsrv.dependencies.jda.api.entities.MessageEmbed;
 import github.scarsz.discordsrv.dependencies.jda.api.entities.TextChannel;
 import github.scarsz.discordsrv.util.DiscordUtil;
+import java.awt.Color;
 import me.joshb.discordbotapi.server.DiscordBotAPI;
 import org.bukkit.ChatColor;
-import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.FallingBlock;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
-
-import java.awt.*;
 import java.time.Instant;
 import java.util.List;
-import java.util.logging.Level;
+import optic_fusion1.deathmessages.util.FileStore;
 
 public class DiscordSRVExtension {
 
-    private static final FileSettings<Config> config = FileStore.INSTANCE.getCONFIG();
+    private DiscordAssets discordAssets;
+    private DeathMessages deathMessages;
+    private FileStore fileStore;
 
-    public DiscordSRVExtension() {
-
+    public DiscordSRVExtension(FileStore fileStore, DiscordAssets discordAssets, DeathMessages deathMessages) {
+        this.discordAssets = discordAssets;
+        this.fileStore = fileStore;
+        this.deathMessages = deathMessages;
     }
 
     public void sendDiscordMessage(PlayerManager pm, MessageType messageType, String message) {
-        List<String> channels = DiscordAssets.getInstance().getIDs(messageType);
+        List<String> channels = discordAssets.getIDs(messageType);
         for (String groups : channels) {
             if (!groups.contains(":")) {
                 continue;
@@ -44,18 +44,18 @@ public class DiscordSRVExtension {
             String guildID = groupSplit[0];
             String channelID = groupSplit[1];
             if (DiscordUtil.getJda().getGuildById(guildID) == null) {
-                DeathMessages.getInstance().getLogger().severe("Could not find the discord guild with ID: " + guildID);
+                deathMessages.getLogger().severe("Could not find the discord guild with ID: " + guildID);
                 continue;
             }
             Guild g = DiscordUtil.getJda().getGuildById(guildID);
             if (g.getTextChannelById(channelID) == null) {
-                DeathMessages.getInstance().getLogger().severe("Could not find the discord text channel with ID: "
+                deathMessages.getLogger().severe("Could not find the discord text channel with ID: "
                         + channelID + " in guild: " + g.getName());
                 continue;
             }
             TextChannel textChannel = g.getTextChannelById(channelID);
             if (getMessages().getBoolean("Discord.DeathMessage.Remove-Plugin-Prefix")
-                    && config.getBoolean(Config.ADD_PREFIX_TO_ALL_MESSAGES)) {
+                    && fileStore.getConfig().getBoolean(Config.ADD_PREFIX_TO_ALL_MESSAGES)) {
                 String prefix = Assets.colorize(getMessages().getString("Prefix"));
                 prefix = ChatColor.stripColor(prefix);
                 message = message.substring(prefix.length());
@@ -66,7 +66,7 @@ public class DiscordSRVExtension {
                 String[] spl = getMessages().getString("Discord.DeathMessage.Text").split("\\\\n");
                 StringBuilder sb = new StringBuilder();
                 for (String s : spl) {
-                    sb.append(s + "\n");
+                    sb.append(s).append("\n");
                 }
                 if (pm.getLastEntityDamager() instanceof FallingBlock) {
                     textChannel.sendMessage(Assets.playerDeathPlaceholders(sb.toString(), pm,
@@ -81,7 +81,7 @@ public class DiscordSRVExtension {
 
     public void sendEntityDiscordMessage(String rawMessage, PlayerManager pm, Entity entity, boolean hasOwner, MessageType messageType) {
         String message = rawMessage;
-        List<String> channels = DiscordAssets.getInstance().getIDs(messageType);
+        List<String> channels = discordAssets.getIDs(messageType);
         for (String groups : channels) {
             if (!groups.contains(":")) {
                 continue;
@@ -90,12 +90,12 @@ public class DiscordSRVExtension {
             String guildID = groupSplit[0];
             String channelID = groupSplit[1];
             if (DiscordBotAPI.getJDA().getGuildById(guildID) == null) {
-                DeathMessages.getInstance().getLogger().severe("Could not find the discord guild with ID: " + guildID);
+                deathMessages.getLogger().severe("Could not find the discord guild with ID: " + guildID);
                 continue;
             }
             Guild g = DiscordUtil.getJda().getGuildById(guildID);
             if (g.getTextChannelById(channelID) == null) {
-                DeathMessages.getInstance().getLogger().severe("Could not find the discord text channel with ID: "
+                deathMessages.getLogger().severe("Could not find the discord text channel with ID: "
                         + channelID + " in guild: " + g.getName());
                 continue;
             }
@@ -269,13 +269,13 @@ public class DiscordSRVExtension {
             }
             return getMessages().getInt("Discord.DeathMessage.Color", color);
         } catch (ClassNotFoundException | NoSuchFieldException | IllegalAccessException e) {
-            DeathMessages.getInstance().getLogger().severe("Error while parsing " + getMessages().getString("Discord.DeathMessage.Color") + " as a color!");
-            DeathMessages.getInstance().getLogger().severe("Make sure your using spigot for your server!");
+            deathMessages.getLogger().severe("Error while parsing " + getMessages().getString("Discord.DeathMessage.Color") + " as a color!");
+            deathMessages.getLogger().severe("Make sure your using spigot for your server!");
             return color;
         }
     }
 
-    private FileConfiguration getMessages() {
-        return Messages.getInstance().getConfig();
+    private CommentedConfiguration getMessages() {
+        return deathMessages.getConfigManager().getMessagesConfig().getConfig();
     }
 }

@@ -6,6 +6,7 @@ import dev.mrshawn.deathmessages.command.deathmessages.CommandManager;
 import dev.mrshawn.deathmessages.command.deathmessages.TabCompleter;
 import dev.mrshawn.deathmessages.command.deathmessages.alias.CommandDeathMessagesToggle;
 import dev.mrshawn.deathmessages.files.Config;
+import dev.mrshawn.deathmessages.hooks.DiscordAssets;
 import dev.mrshawn.deathmessages.hooks.DiscordBotAPIExtension;
 import dev.mrshawn.deathmessages.hooks.DiscordSRVExtension;
 import dev.mrshawn.deathmessages.hooks.PlaceholderAPIExtension;
@@ -129,12 +130,12 @@ public class DeathMessages extends JavaPlugin {
         }
 
         if (Bukkit.getPluginManager().getPlugin("DiscordBotAPI") != null && fileStore.getConfig().getBoolean(Config.HOOKS_DISCORD_ENABLED)) {
-            discordBotAPIExtension = new DiscordBotAPIExtension();
+            discordBotAPIExtension = new DiscordBotAPIExtension(fileStore, new DiscordAssets(fileStore), this);
             getLogger().info("DiscordBotAPI Hook Enabled!");
         }
 
         if (Bukkit.getPluginManager().getPlugin("DiscordSRV") != null && fileStore.getConfig().getBoolean(Config.HOOKS_DISCORD_ENABLED)) {
-            discordSRVExtension = new DiscordSRVExtension();
+            discordSRVExtension = new DiscordSRVExtension(fileStore, new DiscordAssets(fileStore), this);
             getLogger().info("DiscordSRV Hook Enabled!");
         }
 

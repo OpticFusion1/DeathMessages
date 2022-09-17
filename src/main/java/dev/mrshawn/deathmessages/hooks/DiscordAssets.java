@@ -2,33 +2,28 @@ package dev.mrshawn.deathmessages.hooks;
 
 import dev.mrshawn.deathmessages.enums.MessageType;
 import dev.mrshawn.deathmessages.files.Config;
-import dev.mrshawn.deathmessages.files.FileSettings;
-import dev.mrshawn.deathmessages.kotlin.files.FileStore;
 
 import java.util.List;
+import optic_fusion1.deathmessages.util.FileStore;
 
 public class DiscordAssets {
 
-    public DiscordAssets() {
-    }
-
-    private static final DiscordAssets instance = new DiscordAssets();
-    private static final FileSettings<Config> config = FileStore.INSTANCE.getCONFIG();
-
-    public static DiscordAssets getInstance() {
-        return instance;
+    private FileStore fileStore;
+    
+    public DiscordAssets(FileStore fileStore) {
+        this.fileStore = fileStore;
     }
 
     public List<String> getIDs(MessageType messageType) {
         return switch (messageType) {
             case PLAYER ->
-                config.getStringList(Config.HOOKS_DISCORD_CHANNELS_PLAYER_CHANNELS);
+                fileStore.getConfig().getStringList(Config.HOOKS_DISCORD_CHANNELS_PLAYER_CHANNELS);
             case MOB ->
-                config.getStringList(Config.HOOKS_DISCORD_CHANNELS_MOB_CHANNELS);
+                fileStore.getConfig().getStringList(Config.HOOKS_DISCORD_CHANNELS_MOB_CHANNELS);
             case NATURAL ->
-                config.getStringList(Config.HOOKS_DISCORD_CHANNELS_NATURAL_CHANNELS);
+                fileStore.getConfig().getStringList(Config.HOOKS_DISCORD_CHANNELS_NATURAL_CHANNELS);
             case ENTITY ->
-                config.getStringList(Config.HOOKS_DISCORD_CHANNELS_ENTITY_CHANNELS);
+                fileStore.getConfig().getStringList(Config.HOOKS_DISCORD_CHANNELS_ENTITY_CHANNELS);
         };
     }
 
