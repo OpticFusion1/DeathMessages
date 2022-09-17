@@ -3,7 +3,6 @@ package dev.mrshawn.deathmessages.listeners;
 import dev.mrshawn.deathmessages.DeathMessages;
 import dev.mrshawn.deathmessages.api.EntityManager;
 import dev.mrshawn.deathmessages.api.PlayerManager;
-import dev.mrshawn.deathmessages.config.EntityDeathMessages;
 import dev.mrshawn.deathmessages.enums.MobType;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;

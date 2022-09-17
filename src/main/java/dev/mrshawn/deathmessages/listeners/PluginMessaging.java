@@ -40,8 +40,7 @@ public class PluginMessaging implements PluginMessageListener {
             if (subChannel.equals("GetServer")) {
                 String serverName = in.readUTF();
                 deathMessages.getLogger().info("Server-Name successfully initialized from Bungee! (" + serverName + ")");
-                deathMessages.set
-//                deathMessages.setBungeeServerName(serverName);
+                deathMessages.setBungeeServerName(serverName);
                 fileStore.getConfig().set(Config.HOOKS_BUNGEE_SERVER_NAME_DISPLAY_NAME, Config.HOOKS_BUNGEE_SERVER_NAME_DISPLAY_NAME, serverName);
                 fileStore.getConfig().save();
                 deathMessages.setBungeeServerNameRequest(false);

@@ -1,16 +1,13 @@
 package dev.mrshawn.deathmessages.command.deathmessages;
 
 import dev.mrshawn.deathmessages.DeathMessages;
-import dev.mrshawn.deathmessages.config.Messages;
 import dev.mrshawn.deathmessages.enums.Permission;
 import dev.mrshawn.deathmessages.files.Config;
 import dev.mrshawn.deathmessages.files.FileSettings;
-import dev.mrshawn.deathmessages.kotlin.files.FileStore;
 import dev.mrshawn.deathmessages.utils.Assets;
 import github.scarsz.discordsrv.DiscordSRV;
 import me.joshb.discordbotapi.server.DiscordBotAPI;
 import org.bukkit.command.CommandSender;
-
 import java.util.List;
 
 public class CommandDiscordLog extends DeathMessagesCommand {

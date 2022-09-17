@@ -249,4 +249,8 @@ public class DeathMessages extends JavaPlugin {
         return configManager;
     }
 
+    public void setBungeeServerName(String serverName) {
+        this.bungeeServerName = serverName;
+    }
+
 }

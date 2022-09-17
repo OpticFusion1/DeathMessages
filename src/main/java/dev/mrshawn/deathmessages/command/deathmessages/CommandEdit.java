@@ -1,7 +1,5 @@
 package dev.mrshawn.deathmessages.command.deathmessages;
 
-import dev.mrshawn.deathmessages.config.EntityDeathMessages;
-import dev.mrshawn.deathmessages.config.PlayerDeathMessages;
 import dev.mrshawn.deathmessages.enums.DamageTypes;
 import dev.mrshawn.deathmessages.enums.Permission;
 import dev.mrshawn.deathmessages.utils.Assets;

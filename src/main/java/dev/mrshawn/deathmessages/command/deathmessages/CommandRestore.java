@@ -1,8 +1,8 @@
 package dev.mrshawn.deathmessages.command.deathmessages;
 
-import dev.mrshawn.deathmessages.config.ConfigManager;
 import dev.mrshawn.deathmessages.enums.Permission;
 import dev.mrshawn.deathmessages.utils.Assets;
+import optic_fusion1.deathmessages.config.ConfigManager;
 import org.bukkit.command.CommandSender;
 
 public class CommandRestore extends DeathMessagesCommand {

@@ -3,19 +3,25 @@ package dev.mrshawn.deathmessages.listeners;
 import dev.mrshawn.deathmessages.DeathMessages;
 import dev.mrshawn.deathmessages.api.EntityManager;
 import dev.mrshawn.deathmessages.api.PlayerManager;
-import dev.mrshawn.deathmessages.config.EntityDeathMessages;
 import dev.mrshawn.deathmessages.enums.MobType;
+import java.util.HashMap;
 import org.bukkit.Bukkit;
-import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
-
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import org.bukkit.entity.EnderCrystal;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.EvokerFangs;
+import org.bukkit.entity.FallingBlock;
+import org.bukkit.entity.Firework;
+import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Player;
+import org.bukkit.entity.Projectile;
+import org.bukkit.entity.TNTPrimed;
 
 public class EntityDamageByEntity implements Listener {
 
@@ -60,11 +66,9 @@ public class EntityDamageByEntity implements Listener {
                 pm.setLastEntityDamager(e.getDamager());
             } else if (e.getDamager().getType().isAlive()) {
                 pm.setLastEntityDamager(e.getDamager());
-            } else if (DeathMessages.majorVersion() >= 11) {
-                if (e.getDamager() instanceof EvokerFangs) {
-                    EvokerFangs evokerFangs = (EvokerFangs) e.getDamager();
-                    pm.setLastEntityDamager(evokerFangs.getOwner());
-                }
+            } else if (e.getDamager() instanceof EvokerFangs) {
+                EvokerFangs evokerFangs = (EvokerFangs) e.getDamager();
+                pm.setLastEntityDamager(evokerFangs.getOwner());
             }
         } else if (!(e.getEntity() instanceof Player) && e.getDamager() instanceof Player) {
             if (EntityDeathMessages.getInstance().getConfig().getConfigurationSection("Entities") == null) {
@@ -131,6 +135,7 @@ public class EntityDamageByEntity implements Listener {
                 }
             }
         }
+
         if (e.getEntity() instanceof EnderCrystal) {
             if (e.getDamager().getType().isAlive()) {
                 explosions.put(e.getEntity().getUniqueId(), e.getDamager());

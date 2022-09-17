@@ -10,7 +10,6 @@ import dev.mrshawn.deathmessages.enums.MessageType;
 import dev.mrshawn.deathmessages.enums.MobType;
 import dev.mrshawn.deathmessages.files.Config;
 import dev.mrshawn.deathmessages.utils.Assets;
-import static github.scarsz.discordsrv.DiscordSRV.config;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -22,8 +21,7 @@ import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
 import java.util.ArrayList;
 import java.util.List;
-import okhttp3.internal.http2.Settings;
-import optic_fusion1.deathmessages.fileStore.getConfig().ConfigFile;
+import optic_fusion1.deathmessages.config.ConfigFile;
 import optic_fusion1.deathmessages.util.FileStore;
 import org.bukkit.entity.EnderCrystal;
 import org.bukkit.entity.Entity;
@@ -37,11 +35,13 @@ public class EntityDeath implements Listener {
     private DeathMessages deathMessages;
     private FileStore fileStore;
     private ConfigFile gangConfig;
+    private ConfigFile settingsConfig;
 
     public EntityDeath(DeathMessages deathMessages) {
         this.deathMessages = deathMessages;
         fileStore = deathMessages.getFileStore();
         gangConfig = deathMessages.getConfigManager().getGangsConfig();
+        settingsConfig = deathMessages.getConfigManager().getSettingsConfig();
     }
 
     synchronized void onEntityDeath(EntityDeathEvent e) {
@@ -152,8 +152,8 @@ public class EntityDeath implements Listener {
         }
         if (fileStore.getConfig().getBoolean(Config.PER_WORLD_MESSAGES)) {
             // TODO: Add support for Map in FileSettings
-            for (String groups : Settings.getInstance().getConfig().getConfigurationSection("World-Groups").getKeys(false)) {
-                List<String> worlds = Settings.getInstance().getConfig().getStringList("World-Groups." + groups);
+            for (String groups : settingsConfig.getConfig().getConfigurationSection("World-Groups").getKeys(false)) {
+                List<String> worlds = settingsConfig.getConfig().getStringList("World-Groups." + groups);
                 if (worlds.contains(e.getWorld().getName())) {
                     for (String single : worlds) {
                         broadcastWorlds.add(Bukkit.getWorld(single));

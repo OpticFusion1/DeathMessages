@@ -1,6 +1,5 @@
 package dev.mrshawn.deathmessages.command.deathmessages;
 
-import dev.mrshawn.deathmessages.config.Messages;
 import dev.mrshawn.deathmessages.enums.Permission;
 import dev.mrshawn.deathmessages.utils.Assets;
 import org.bukkit.command.Command;
@@ -8,7 +7,6 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -35,8 +33,7 @@ public class CommandManager implements CommandExecutor {
             return false;
         }
         if (args.length == 0) {
-            for (String s : Assets.formatMessage(
-                    Messages.getInstance().getConfig().getStringList("Commands.DeathMessages.Help"))) {
+            for (String s : Assets.formatMessage(Messages.getInstance().getConfig().getStringList("Commands.DeathMessages.Help"))) {
                 sender.sendMessage(s);
             }
         } else {
@@ -48,8 +45,7 @@ public class CommandManager implements CommandExecutor {
                 cmd.onCommand(sender, args);
                 return false;
             }
-            for (String s : Assets.formatMessage(
-                    Messages.getInstance().getConfig().getStringList("Commands.DeathMessages.Help"))) {
+            for (String s : Assets.formatMessage(Messages.getInstance().getConfig().getStringList("Commands.DeathMessages.Help"))) {
                 sender.sendMessage(s);
             }
         }

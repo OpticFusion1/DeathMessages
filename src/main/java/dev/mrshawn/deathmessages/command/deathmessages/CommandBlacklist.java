@@ -1,12 +1,10 @@
 package dev.mrshawn.deathmessages.command.deathmessages;
 
 import dev.mrshawn.deathmessages.api.PlayerManager;
-import dev.mrshawn.deathmessages.config.UserData;
 import dev.mrshawn.deathmessages.enums.Permission;
 import dev.mrshawn.deathmessages.utils.Assets;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
-
 import java.util.Map;
 import java.util.UUID;
 
