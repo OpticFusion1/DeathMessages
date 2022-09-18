@@ -1,5 +1,6 @@
 package dev.mrshawn.deathmessages.listeners.mythicmobs;
 
+import dev.mrshawn.deathmessages.DeathMessages;
 import dev.mrshawn.deathmessages.api.EntityManager;
 import dev.mrshawn.deathmessages.api.PlayerManager;
 import dev.mrshawn.deathmessages.api.events.BroadcastEntityDeathMessageEvent;
@@ -11,7 +12,6 @@ import io.lumine.mythic.bukkit.events.MythicMobDeathEvent;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
-import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Entity;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -24,18 +24,20 @@ public class MobDeath implements Listener {
 
     private ConfigFile settingsConfigFile;
     private FileStore fileStore;
+    private ConfigFile entityDeathMessagesConfigFile;
 
-    public MobDeath(FileStore fileStore, ConfigFile settingsConfigFile) {
-        this.fileStore = fileStore;
-        this.settingsConfigFile = settingsConfigFile;
+    public MobDeath(DeathMessages deathMessages) {
+        fileStore = deathMessages.getFileStore();
+        settingsConfigFile = deathMessages.getConfigManager().getSettingsConfig();
+        entityDeathMessagesConfigFile = deathMessages.getConfigManager().getEntityDeathMessagesConfig();
     }
 
     @EventHandler
     public void onMythicMobDeath(MythicMobDeathEvent e) {
-        if (getEntityDeathMessages().getConfigurationSection("Mythic-Mobs-Entities").getKeys(false).isEmpty()) {
+        if (entityDeathMessagesConfigFile.getConfig().getConfigurationSection("Mythic-Mobs-Entities").getKeys(false).isEmpty()) {
             return;
         }
-        for (String customMobs : getEntityDeathMessages().getConfigurationSection("Mythic-Mobs-Entities").getKeys(false)) {
+        for (String customMobs : entityDeathMessagesConfigFile.getConfig().getConfigurationSection("Mythic-Mobs-Entities").getKeys(false)) {
             if (e.getMob().getType().getInternalName().equals(customMobs)) {
                 EntityManager em = EntityManager.getEntity(e.getEntity().getUniqueId());
 
@@ -78,7 +80,4 @@ public class MobDeath implements Listener {
         return broadcastWorlds;
     }
 
-    public static FileConfiguration getEntityDeathMessages() {
-        return Assets.getEntityDeathMessages();
-    }
 }

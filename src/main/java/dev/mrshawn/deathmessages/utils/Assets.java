@@ -1,6 +1,5 @@
 package dev.mrshawn.deathmessages.utils;
 
-import com.github.sirblobman.api.xseries.XMaterial;
 import de.tr7zw.changeme.nbtapi.NBTItem;
 import dev.mrshawn.deathmessages.DeathMessages;
 import dev.mrshawn.deathmessages.api.EntityManager;
@@ -19,11 +18,8 @@ import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.HoverEvent;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.chat.hover.content.Text;
-import org.apache.commons.lang.StringUtils;
 import org.bukkit.Material;
 import org.bukkit.World;
-import org.bukkit.block.Block;
-import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.inventory.ItemStack;
 import java.util.ArrayList;
@@ -32,41 +28,30 @@ import java.util.List;
 import java.util.Random;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import me.joshb.discordbotapi.bungee.config.Messages;
+import optic_fusion1.deathmessages.util.Colorize;
+import static optic_fusion1.deathmessages.util.Colorize.colorize;
+import optic_fusion1.deathmessages.util.Utils;
+import static optic_fusion1.deathmessages.util.Utils.formatting;
+import static optic_fusion1.deathmessages.util.Utils.getColorOfString;
+import static optic_fusion1.deathmessages.util.Utils.getSimpleCause;
+import static optic_fusion1.deathmessages.util.Utils.getSimpleProjectile;
+import static optic_fusion1.deathmessages.util.Utils.isWeapon;
 import org.bukkit.entity.Arrow;
-import org.bukkit.entity.DragonFireball;
-import org.bukkit.entity.Egg;
 import org.bukkit.entity.EnderCrystal;
-import org.bukkit.entity.EnderPearl;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.FallingBlock;
-import org.bukkit.entity.Fireball;
 import org.bukkit.entity.Firework;
-import org.bukkit.entity.FishHook;
 import org.bukkit.entity.LivingEntity;
-import org.bukkit.entity.LlamaSpit;
 import org.bukkit.entity.Player;
-import org.bukkit.entity.Projectile;
-import org.bukkit.entity.ShulkerBullet;
-import org.bukkit.entity.Snowball;
 import org.bukkit.entity.TNTPrimed;
 import org.bukkit.entity.Tameable;
-import org.bukkit.entity.Trident;
-import org.bukkit.entity.WitherSkull;
 
 public class Assets {
 
     private static final FileSettings<Config> config = FileStore.INSTANCE.getCONFIG();
 
     private static final boolean addPrefix = config.getBoolean(Config.ADD_PREFIX_TO_ALL_MESSAGES);
-
-    public static boolean isNumeric(String s) {
-        for (char c : s.toCharArray()) {
-            if (!Character.isDigit(c)) {
-                return false;
-            }
-        }
-        return true;
-    }
 
     public static HashMap<String, String> addingMessage = new HashMap<>();
 
@@ -95,7 +80,7 @@ public class Assets {
         String displayName = itemStack.getItemMeta().getDisplayName();
 
         for (String s : config.getStringList(Config.CUSTOM_ITEM_DISPLAY_NAMES_IS_WEAPON)) {
-            Pattern pattern = Pattern.compile(Assets.colorize(s));
+            Pattern pattern = Pattern.compile(Colorize.colorize(s));
             Matcher matcher = pattern.matcher(displayName);
             if (matcher.find()) {
                 return true;
@@ -119,24 +104,14 @@ public class Assets {
         }
         return false;
     }
-    
+
     public static boolean hasWeapon(LivingEntity mob, EntityDamageEvent.DamageCause damageCause) {
-        if (DeathMessages.majorVersion() < 9) {
-            if (mob.getEquipment() == null) {
-                return false;
-            } else if (isWeapon(mob.getEquipment().getItemInHand())) {
-                return false;
-            } else {
-                return !damageCause.equals(EntityDamageEvent.DamageCause.THORNS);
-            }
+        if (mob.getEquipment() == null) {
+            return false;
+        } else if (isWeapon(mob.getEquipment().getItemInMainHand())) {
+            return false;
         } else {
-            if (mob.getEquipment() == null) {
-                return false;
-            } else if (isWeapon(mob.getEquipment().getItemInMainHand())) {
-                return false;
-            } else {
-                return !damageCause.equals(EntityDamageEvent.DamageCause.THORNS);
-            }
+            return !damageCause.equals(EntityDamageEvent.DamageCause.THORNS);
         }
     }
 
@@ -144,7 +119,7 @@ public class Assets {
         LivingEntity mob = (LivingEntity) pm.getLastEntityDamager();
         boolean hasWeapon = hasWeapon(mob, pm.getLastDamage());
 
-        if (pm.getLastDamage().equals(EntityDamageEvent.DamageCause.ENTITY_EXPLOSION)) {
+        if (pm.getLastDamage() == EntityDamageEvent.DamageCause.ENTITY_EXPLOSION) {
             if (pm.getLastExplosiveEntity() instanceof EnderCrystal) {
                 return get(gang, pm, mob, "End-Crystal");
             } else if (pm.getLastExplosiveEntity() instanceof TNTPrimed) {
@@ -155,32 +130,30 @@ public class Assets {
                 return get(gang, pm, mob, getSimpleCause(EntityDamageEvent.DamageCause.ENTITY_EXPLOSION));
             }
         }
-        if (pm.getLastDamage().equals(EntityDamageEvent.DamageCause.BLOCK_EXPLOSION)) {
+        if (pm.getLastDamage() == EntityDamageEvent.DamageCause.BLOCK_EXPLOSION) {
             //Bed kill
-
             ExplosionManager explosionManager = ExplosionManager.getManagerIfEffected(pm.getUUID());
             if (explosionManager.getMaterial().name().contains("BED")) {
                 PlayerManager pyro = PlayerManager.getPlayer(explosionManager.getPyro());
                 return get(gang, pm, pyro.getPlayer(), "Bed");
             }
             //Respawn Anchor kill
-            if (DeathMessages.majorVersion() >= 16 && explosionManager.getMaterial().equals(Material.RESPAWN_ANCHOR)) {
+            if (explosionManager.getMaterial() == Material.RESPAWN_ANCHOR) {
                 PlayerManager pyro = PlayerManager.getPlayer(explosionManager.getPyro());
                 return get(gang, pm, pyro.getPlayer(), "Respawn-Anchor");
             }
         }
         if (hasWeapon) {
-            if (pm.getLastDamage().equals(EntityDamageEvent.DamageCause.ENTITY_ATTACK)) {
+            if (pm.getLastDamage() == EntityDamageEvent.DamageCause.ENTITY_ATTACK) {
                 return getWeapon(gang, pm, mob);
-            } else if (pm.getLastDamage().equals(EntityDamageEvent.DamageCause.PROJECTILE)
-                    && pm.getLastProjectileEntity() instanceof Arrow) {
+            } else if (pm.getLastDamage() == EntityDamageEvent.DamageCause.PROJECTILE && pm.getLastProjectileEntity() instanceof Arrow) {
                 return getProjectile(gang, pm, mob, getSimpleProjectile(pm.getLastProjectileEntity()));
             } else {
                 return get(gang, pm, mob, getSimpleCause(EntityDamageEvent.DamageCause.ENTITY_ATTACK));
             }
         } else {
             for (EntityDamageEvent.DamageCause dc : EntityDamageEvent.DamageCause.values()) {
-                if (pm.getLastDamage().equals(EntityDamageEvent.DamageCause.PROJECTILE)) {
+                if (pm.getLastDamage() == EntityDamageEvent.DamageCause.PROJECTILE) {
                     return getProjectile(gang, pm, mob, getSimpleProjectile(pm.getLastProjectileEntity()));
                 }
                 if (pm.getLastDamage().equals(dc)) {
@@ -196,7 +169,7 @@ public class Assets {
         Player p = pm.getPlayer();
         boolean hasWeapon = hasWeapon(p, pm.getLastDamage());
 
-        if (em.getLastDamage().equals(EntityDamageEvent.DamageCause.ENTITY_EXPLOSION)) {
+        if (em.getLastDamage() == EntityDamageEvent.DamageCause.ENTITY_EXPLOSION) {
             if (em.getLastExplosiveEntity() instanceof EnderCrystal) {
                 return getEntityDeath(p, em.getEntity(), "End-Crystal", mobType);
             } else if (em.getLastExplosiveEntity() instanceof TNTPrimed) {
@@ -207,7 +180,7 @@ public class Assets {
                 return getEntityDeath(p, em.getEntity(), getSimpleCause(EntityDamageEvent.DamageCause.ENTITY_EXPLOSION), mobType);
             }
         }
-        if (em.getLastDamage().equals(EntityDamageEvent.DamageCause.BLOCK_EXPLOSION)) {
+        if (em.getLastDamage() == EntityDamageEvent.DamageCause.BLOCK_EXPLOSION) {
             //Bed kill
             ExplosionManager explosionManager = ExplosionManager.getManagerIfEffected(em.getEntityUUID());
             if (explosionManager.getMaterial().name().contains("BED")) {
@@ -215,23 +188,22 @@ public class Assets {
                 return getEntityDeath(pyro.getPlayer(), em.getEntity(), "Bed", mobType);
             }
             //Respawn Anchor kill
-            if (DeathMessages.majorVersion() >= 16 && explosionManager.getMaterial().equals(Material.RESPAWN_ANCHOR)) {
+            if (explosionManager.getMaterial() == Material.RESPAWN_ANCHOR) {
                 PlayerManager pyro = PlayerManager.getPlayer(explosionManager.getPyro());
                 return getEntityDeath(pyro.getPlayer(), em.getEntity(), "Respawn-Anchor", mobType);
             }
         }
         if (hasWeapon) {
-            if (em.getLastDamage().equals(EntityDamageEvent.DamageCause.ENTITY_ATTACK)) {
+            if (em.getLastDamage() == EntityDamageEvent.DamageCause.ENTITY_ATTACK) {
                 return getEntityDeathWeapon(p, em.getEntity(), mobType);
-            } else if (em.getLastDamage().equals(EntityDamageEvent.DamageCause.PROJECTILE)
-                    && em.getLastProjectileEntity() instanceof Arrow) {
+            } else if (em.getLastDamage() == EntityDamageEvent.DamageCause.PROJECTILE && em.getLastProjectileEntity() instanceof Arrow) {
                 return getEntityDeathProjectile(p, em, getSimpleProjectile(em.getLastProjectileEntity()), mobType);
             } else {
                 return getEntityDeathWeapon(p, em.getEntity(), mobType);
             }
         } else {
             for (EntityDamageEvent.DamageCause dc : EntityDamageEvent.DamageCause.values()) {
-                if (em.getLastDamage().equals(EntityDamageEvent.DamageCause.PROJECTILE)) {
+                if (em.getLastDamage() == EntityDamageEvent.DamageCause.PROJECTILE) {
                     return getEntityDeathProjectile(p, em, getSimpleProjectile(em.getLastProjectileEntity()), mobType);
                 }
                 if (em.getLastDamage().equals(dc)) {
@@ -251,7 +223,7 @@ public class Assets {
         String msg = msgs.get(random.nextInt(msgs.size()));
         TextComponent tc = new TextComponent("");
         if (addPrefix) {
-            TextComponent tx = new TextComponent(TextComponent.fromLegacyText(Assets.colorize(Messages.getInstance().getConfig().getString("Prefix"))));
+            TextComponent tx = new TextComponent(TextComponent.fromLegacyText(Colorize.colorize(Messages.getInstance().getConfig().getString("Prefix"))));
             tc.addExtra(tx);
         }
         String[] sec = msg.split("::");
@@ -272,14 +244,9 @@ public class Assets {
             if (splitMessage.contains("%block%") && pm.getLastEntityDamager() instanceof FallingBlock) {
                 try {
                     FallingBlock fb = (FallingBlock) pm.getLastEntityDamager();
-                    String material;
-                    if (DeathMessages.majorVersion() < 13) {
-                        material = XMaterial.matchXMaterial(fb.getMaterial()).parseMaterial().toString().toLowerCase();
-                    } else {
-                        material = XMaterial.matchXMaterial(fb.getBlockData().getMaterial()).parseMaterial().toString().toLowerCase();
-                    }
+                    String material = fb.getBlockData().getMaterial().toString().toLowerCase();
                     String configValue = Messages.getInstance().getConfig().getString("Blocks." + material);
-                    String mssa = Assets.colorize(splitMessage.replaceAll("%block%", configValue
+                    String mssa = Colorize.colorize(splitMessage.replaceAll("%block%", configValue
                             + (splitMessage.endsWith(".") ? "" : " ")));
                     tc.addExtra(mssa);
                     lastColor = getColorOfString(lastColor + mssa);
@@ -293,11 +260,9 @@ public class Assets {
 
             } else if (splitMessage.contains("%climbable%") && pm.getLastDamage().equals(EntityDamageEvent.DamageCause.FALL)) {
                 try {
-                    String material;
-                    material = XMaterial.matchXMaterial(pm.getLastClimbing()).parseMaterial().toString().toLowerCase();
+                    String material = pm.getLastClimbing().toString().toLowerCase();
                     String configValue = Messages.getInstance().getConfig().getString("Blocks." + material);
-                    String mssa = Assets.colorize(splitMessage.replaceAll("%climbable%", configValue
-                            + (splitMessage.endsWith(".") ? "" : " ")));
+                    String mssa = Colorize.colorize(splitMessage.replaceAll("%climbable%", configValue + (splitMessage.endsWith(".") ? "" : " ")));
                     tc.addExtra(mssa);
                     lastColor = getColorOfString(lastColor + mssa);
                 } catch (NullPointerException e) {
@@ -309,18 +274,9 @@ public class Assets {
                 }
             } else if (pm.getLastDamage().equals(EntityDamageEvent.DamageCause.PROJECTILE) && splitMessage.contains("%weapon%")) {
                 ItemStack i;
-                if (DeathMessages.majorVersion() <= 9) {
-                    i = pm.getPlayer().getEquipment().getItemInHand();
-                } else {
-                    i = pm.getPlayer().getEquipment().getItemInMainHand();
-                }
-                if (!i.getType().equals(XMaterial.BOW.parseMaterial())) {
+                i = pm.getPlayer().getEquipment().getItemInMainHand();
+                if (i.getType() != Material.BOW && i.getType() != Material.CROSSBOW) {
                     return getNaturalDeath(pm, "Projectile-Unknown");
-                }
-                if (DeathMessages.majorVersion() >= 14) {
-                    if (!i.getType().equals(XMaterial.CROSSBOW.parseMaterial())) {
-                        return getNaturalDeath(pm, "Projectile-Unknown");
-                    }
                 }
                 String displayName;
                 if (!(i.getItemMeta() == null) && !i.getItemMeta().hasDisplayName() || i.getItemMeta().getDisplayName().equals("")) {
@@ -333,16 +289,16 @@ public class Assets {
                             return getNaturalDeath(pm, "Projectile-Unknown");
                         }
                     }
-                    displayName = Assets.convertString(i.getType().name());
+                    displayName = Utils.convertString(i.getType().name());
                 } else {
                     displayName = i.getItemMeta().getDisplayName();
                 }
                 String[] spl = splitMessage.split("%weapon%");
                 if (spl.length != 0 && spl[0] != null && !spl[0].equals("")) {
-                    displayName = Assets.colorize(spl[0]) + displayName;
+                    displayName = Colorize.colorize(spl[0]) + displayName;
                 }
                 if (spl.length != 0 && spl.length != 1 && spl[1] != null && !spl[1].equals("")) {
-                    displayName = displayName + Assets.colorize(spl[1]);
+                    displayName = displayName + Colorize.colorize(spl[1]);
                 }
                 TextComponent weaponComp = new TextComponent(TextComponent.fromLegacyText(displayName));
                 BaseComponent[] hoverEventComponents = new BaseComponent[]{
@@ -403,7 +359,7 @@ public class Assets {
         String msg = msgs.get(random.nextInt(msgs.size()));
         TextComponent tc = new TextComponent("");
         if (addPrefix) {
-            TextComponent tx = new TextComponent(TextComponent.fromLegacyText(Assets.colorize(Messages.getInstance().getConfig().getString("Prefix"))));
+            TextComponent tx = new TextComponent(TextComponent.fromLegacyText(Colorize.colorize(Messages.getInstance().getConfig().getString("Prefix"))));
             tc.addExtra(tx);
         }
         String[] sec = msg.split("::");
@@ -422,11 +378,7 @@ public class Assets {
         for (String splitMessage : firstSection.split(" ")) {
             if (splitMessage.contains("%weapon%")) {
                 ItemStack i;
-                if (DeathMessages.majorVersion() <= 9) {
-                    i = mob.getEquipment().getItemInHand();
-                } else {
-                    i = mob.getEquipment().getItemInMainHand();
-                }
+                i = mob.getEquipment().getItemInMainHand();
                 String displayName;
                 if (!(i.getItemMeta() == null) && !i.getItemMeta().hasDisplayName() || i.getItemMeta().getDisplayName().equals("")) {
                     if (FileStore.INSTANCE.getCONFIG().getBoolean(Config.DISABLE_WEAPON_KILL_WITH_NO_CUSTOM_NAME_ENABLED)) {
@@ -440,16 +392,16 @@ public class Assets {
                                     .getString(Config.DISABLE_WEAPON_KILL_WITH_NO_CUSTOM_NAME_SOURCE_WEAPON_DEFAULT_TO));
                         }
                     }
-                    displayName = Assets.convertString(i.getType().name());
+                    displayName = Utils.convertString(i.getType().name());
                 } else {
                     displayName = i.getItemMeta().getDisplayName();
                 }
                 String[] spl = splitMessage.split("%weapon%");
                 if (spl.length != 0 && spl[0] != null && !spl[0].equals("")) {
-                    displayName = Assets.colorize(spl[0]) + displayName;
+                    displayName = Colorize.colorize(spl[0]) + displayName;
                 }
                 if (spl.length != 0 && spl.length != 1 && spl[1] != null && !spl[1].equals("")) {
-                    displayName = displayName + Assets.colorize(spl[1]);
+                    displayName = displayName + Colorize.colorize(spl[1]);
                 }
                 TextComponent weaponComp = new TextComponent(TextComponent.fromLegacyText(displayName));
                 BaseComponent[] hoverEventComponents = new BaseComponent[]{
@@ -513,7 +465,7 @@ public class Assets {
         String msg = msgs.get(random.nextInt(msgs.size()));
         TextComponent tc = new TextComponent("");
         if (addPrefix) {
-            TextComponent tx = new TextComponent(TextComponent.fromLegacyText(Assets.colorize(Messages.getInstance().getConfig().getString("Prefix"))));
+            TextComponent tx = new TextComponent(TextComponent.fromLegacyText(Colorize.colorize(Messages.getInstance().getConfig().getString("Prefix"))));
             tc.addExtra(tx);
         }
         String[] sec = msg.split("::");
@@ -532,11 +484,7 @@ public class Assets {
         for (String splitMessage : firstSection.split(" ")) {
             if (splitMessage.contains("%weapon%")) {
                 ItemStack i;
-                if (DeathMessages.majorVersion() <= 9) {
-                    i = p.getEquipment().getItemInHand();
-                } else {
-                    i = p.getEquipment().getItemInMainHand();
-                }
+                i = p.getEquipment().getItemInMainHand();
                 String displayName;
                 if (!(i.getItemMeta() == null) && !i.getItemMeta().hasDisplayName() || i.getItemMeta().getDisplayName().equals("")) {
                     if (config.getBoolean(Config.DISABLE_WEAPON_KILL_WITH_NO_CUSTOM_NAME_ENABLED)) {
@@ -550,16 +498,16 @@ public class Assets {
                                     config.getString(Config.DISABLE_WEAPON_KILL_WITH_NO_CUSTOM_NAME_SOURCE_WEAPON_DEFAULT_TO), mobType);
                         }
                     }
-                    displayName = Assets.convertString(i.getType().name());
+                    displayName = Utils.convertString(i.getType().name());
                 } else {
                     displayName = i.getItemMeta().getDisplayName();
                 }
                 String[] spl = splitMessage.split("%weapon%");
                 if (spl.length != 0 && spl[0] != null && !spl[0].equals("")) {
-                    displayName = Assets.colorize(spl[0]) + displayName;
+                    displayName = Colorize.colorize(spl[0]) + displayName;
                 }
                 if (spl.length != 0 && spl.length != 1 && spl[1] != null && !spl[1].equals("")) {
-                    displayName = displayName + Assets.colorize(spl[1]);
+                    displayName = displayName + Colorize.colorize(spl[1]);
                 }
                 TextComponent weaponComp = new TextComponent(TextComponent.fromLegacyText(displayName));
                 BaseComponent[] hoverEventComponents = new BaseComponent[]{
@@ -625,7 +573,7 @@ public class Assets {
         String msg = msgs.get(random.nextInt(msgs.size()));
         TextComponent tc = new TextComponent("");
         if (addPrefix) {
-            TextComponent tx = new TextComponent(TextComponent.fromLegacyText(Assets.colorize(Messages.getInstance().getConfig().getString("Prefix"))));
+            TextComponent tx = new TextComponent(TextComponent.fromLegacyText(Colorize.colorize(Messages.getInstance().getConfig().getString("Prefix"))));
             tc.addExtra(tx);
         }
         String[] sec = msg.split("::");
@@ -642,7 +590,7 @@ public class Assets {
         String lastColor = "";
         String lastFont = "";
         for (String splitMessage : firstSection.split(" ")) {
-            TextComponent tx = new TextComponent(TextComponent.fromLegacyText(Assets.colorize(playerDeathPlaceholders(lastColor + lastFont + splitMessage, pm, mob)) + " "));
+            TextComponent tx = new TextComponent(TextComponent.fromLegacyText(Colorize.colorize(playerDeathPlaceholders(lastColor + lastFont + splitMessage, pm, mob)) + " "));
             tc.addExtra(tx);
             for (BaseComponent bs : tx.getExtra()) {
                 if (!(bs.getColor() == null)) {
@@ -688,7 +636,7 @@ public class Assets {
         String msg = msgs.get(random.nextInt(msgs.size()));
         TextComponent tc = new TextComponent("");
         if (addPrefix) {
-            TextComponent tx = new TextComponent(TextComponent.fromLegacyText(Assets.colorize(Messages.getInstance().getConfig().getString("Prefix"))));
+            TextComponent tx = new TextComponent(TextComponent.fromLegacyText(Colorize.colorize(Messages.getInstance().getConfig().getString("Prefix"))));
             tc.addExtra(tx);
         }
         String[] sec = msg.split("::");
@@ -707,11 +655,7 @@ public class Assets {
         for (String splitMessage : firstSection.split(" ")) {
             if (splitMessage.contains("%weapon%") && pm.getLastProjectileEntity() instanceof Arrow) {
                 ItemStack i;
-                if (DeathMessages.majorVersion() < 9) {
-                    i = mob.getEquipment().getItemInHand();
-                } else {
-                    i = mob.getEquipment().getItemInMainHand();
-                }
+                i = mob.getEquipment().getItemInMainHand();
                 String displayName;
                 if (!(i.getItemMeta() == null) && !i.getItemMeta().hasDisplayName() || i.getItemMeta().getDisplayName().equals("")) {
                     if (config.getBoolean(Config.DISABLE_WEAPON_KILL_WITH_NO_CUSTOM_NAME_ENABLED)) {
@@ -720,16 +664,16 @@ public class Assets {
                             return getProjectile(gang, pm, mob, config.getString(Config.DISABLE_WEAPON_KILL_WITH_NO_CUSTOM_NAME_SOURCE_PROJECTILE_DEFAULT_TO));
                         }
                     }
-                    displayName = Assets.convertString(i.getType().name());
+                    displayName = Utils.convertString(i.getType().name());
                 } else {
                     displayName = i.getItemMeta().getDisplayName();
                 }
                 String[] spl = splitMessage.split("%weapon%");
                 if (spl.length != 0 && spl[0] != null && !spl[0].equals("")) {
-                    displayName = Assets.colorize(spl[0]) + ChatColor.RESET + displayName;
+                    displayName = Colorize.colorize(spl[0]) + ChatColor.RESET + displayName;
                 }
                 if (spl.length != 0 && spl.length != 1 && spl[1] != null && !spl[1].equals("")) {
-                    displayName = displayName + ChatColor.RESET + Assets.colorize(spl[1]);
+                    displayName = displayName + ChatColor.RESET + Colorize.colorize(spl[1]);
                 }
                 TextComponent weaponComp = new TextComponent(TextComponent.fromLegacyText(displayName));
                 BaseComponent[] hoverEventComponents = new BaseComponent[]{
@@ -738,7 +682,7 @@ public class Assets {
                 weaponComp.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_ITEM, hoverEventComponents));
                 tc.addExtra(weaponComp);
             } else {
-                TextComponent tx = new TextComponent(TextComponent.fromLegacyText(Assets.colorize(playerDeathPlaceholders(lastColor + lastFont + splitMessage, pm, mob)) + " "));
+                TextComponent tx = new TextComponent(TextComponent.fromLegacyText(Colorize.colorize(playerDeathPlaceholders(lastColor + lastFont + splitMessage, pm, mob)) + " "));
                 tc.addExtra(tx);
                 for (BaseComponent bs : tx.getExtra()) {
                     if (!(bs.getColor() == null)) {
@@ -792,7 +736,7 @@ public class Assets {
         String msg = msgs.get(random.nextInt(msgs.size()));
         TextComponent tc = new TextComponent("");
         if (addPrefix) {
-            TextComponent tx = new TextComponent(TextComponent.fromLegacyText(Assets.colorize(Messages.getInstance().getConfig().getString("Prefix"))));
+            TextComponent tx = new TextComponent(TextComponent.fromLegacyText(Colorize.colorize(Messages.getInstance().getConfig().getString("Prefix"))));
             tc.addExtra(tx);
         }
         String[] sec = msg.split("::");
@@ -810,12 +754,7 @@ public class Assets {
         String lastFont = "";
         for (String splitMessage : firstSection.split(" ")) {
             if (splitMessage.contains("%weapon%") && em.getLastProjectileEntity() instanceof Arrow) {
-                ItemStack i;
-                if (DeathMessages.majorVersion() < 9) {
-                    i = p.getEquipment().getItemInHand();
-                } else {
-                    i = p.getEquipment().getItemInMainHand();
-                }
+                ItemStack i = p.getEquipment().getItemInMainHand();
                 String displayName;
                 if (!(i.getItemMeta() == null) && !i.getItemMeta().hasDisplayName() || i.getItemMeta().getDisplayName().equals("")) {
                     if (config.getBoolean(Config.DISABLE_WEAPON_KILL_WITH_NO_CUSTOM_NAME_ENABLED)) {
@@ -825,16 +764,16 @@ public class Assets {
                                     config.getString(Config.DISABLE_WEAPON_KILL_WITH_NO_CUSTOM_NAME_SOURCE_PROJECTILE_DEFAULT_TO), mobType);
                         }
                     }
-                    displayName = Assets.convertString(i.getType().name());
+                    displayName = Utils.convertString(i.getType().name());
                 } else {
                     displayName = i.getItemMeta().getDisplayName();
                 }
                 String[] spl = splitMessage.split("%weapon%");
                 if (spl.length != 0 && spl[0] != null && !spl[0].equals("")) {
-                    displayName = Assets.colorize(spl[0]) + ChatColor.RESET + displayName;
+                    displayName = Colorize.colorize(spl[0]) + ChatColor.RESET + displayName;
                 }
                 if (spl.length != 0 && spl.length != 1 && spl[1] != null && !spl[1].equals("")) {
-                    displayName = displayName + ChatColor.RESET + Assets.colorize(spl[1]);
+                    displayName = displayName + ChatColor.RESET + Colorize.colorize(spl[1]);
                 }
                 TextComponent weaponComp = new TextComponent(TextComponent.fromLegacyText(displayName));
                 BaseComponent[] hoverEventComponents = new BaseComponent[]{
@@ -843,7 +782,7 @@ public class Assets {
                 weaponComp.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_ITEM, hoverEventComponents));
                 tc.addExtra(weaponComp);
             } else {
-                TextComponent tx = new TextComponent(TextComponent.fromLegacyText(Assets.colorize(entityDeathPlaceholders(lastColor + lastFont + splitMessage, p, em.getEntity(), hasOwner)) + " "));
+                TextComponent tx = new TextComponent(TextComponent.fromLegacyText(Colorize.colorize(entityDeathPlaceholders(lastColor + lastFont + splitMessage, p, em.getEntity(), hasOwner)) + " "));
                 tc.addExtra(tx);
                 for (BaseComponent bs : tx.getExtra()) {
                     if (!(bs.getColor() == null)) {
@@ -902,7 +841,7 @@ public class Assets {
         String msg = msgs.get(random.nextInt(msgs.size()));
         TextComponent tc = new TextComponent("");
         if (addPrefix) {
-            TextComponent tx = new TextComponent(TextComponent.fromLegacyText(Assets.colorize(Messages.getInstance().getConfig().getString("Prefix"))));
+            TextComponent tx = new TextComponent(TextComponent.fromLegacyText(Colorize.colorize(Messages.getInstance().getConfig().getString("Prefix"))));
             tc.addExtra(tx);
         }
         String[] sec = msg.split("::");
@@ -919,7 +858,7 @@ public class Assets {
         String lastColor = "";
         String lastFont = "";
         for (String splitMessage : firstSection.split(" ")) {
-            TextComponent tx = new TextComponent(TextComponent.fromLegacyText(Assets.colorize(entityDeathPlaceholders(lastColor + lastFont + splitMessage, player, entity, hasOwner)) + " "));
+            TextComponent tx = new TextComponent(TextComponent.fromLegacyText(Colorize.colorize(entityDeathPlaceholders(lastColor + lastFont + splitMessage, player, entity, hasOwner)) + " "));
             tc.addExtra(tx);
             for (BaseComponent bs : tx.getExtra()) {
                 if (!(bs.getColor() == null)) {
@@ -986,23 +925,6 @@ public class Assets {
             newList.removeIf(s -> s.contains("PERMISSION[") || s.contains("REGION[") || s.contains("PERMISSION_KILLER["));
         }
         return newList;
-    }
-
-    public static String colorize(String message) {
-        if (DeathMessages.majorVersion() >= 16) {
-            Pattern pattern = Pattern.compile("#[a-fA-F0-9]{6}");
-            Matcher matcher = pattern.matcher(message);
-
-            while (matcher.find()) {
-                String color = message.substring(matcher.start(), matcher.end());
-                message = message.replace(color, ChatColor.of(color) + "");
-                matcher = pattern.matcher(message);
-            }
-            message = message.replace('&', ChatColor.COLOR_CHAR);
-            return message;
-        } else {
-            return ChatColor.translateAlternateColorCodes('&', message);
-        }
     }
 
     public static String entityDeathPlaceholders(String msg, Player player, Entity entity, boolean owner) {
@@ -1098,40 +1020,6 @@ public class Assets {
         return msg;
     }
 
-    public static String convertString(String string) {
-        string = string.replaceAll("_", " ").toLowerCase();
-        String[] spl = string.split(" ");
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < spl.length; i++) {
-            if (i == spl.length - 1) {
-                sb.append(StringUtils.capitalize(spl[i]));
-            } else {
-                sb.append(StringUtils.capitalize(spl[i])).append(" ");
-            }
-        }
-        return sb.toString();
-    }
-
-    public static String formatting(BaseComponent tx) {
-        String returning = "";
-        if (tx.isBold()) {
-            returning = returning + "&l";
-        }
-        if (tx.isItalic()) {
-            returning = returning + "&o";
-        }
-        if (tx.isObfuscated()) {
-            returning = returning + "&k";
-        }
-        if (tx.isStrikethrough()) {
-            returning = returning + "&m";
-        }
-        if (tx.isUnderlined()) {
-            returning = returning + "&n";
-        }
-        return returning;
-    }
-
     public static String getEnvironment(World.Environment environment) {
         return switch (environment) {
             case NORMAL ->
@@ -1143,132 +1031,6 @@ public class Assets {
             default ->
                 Messages.getInstance().getConfig().getString("Environment.unknown");
         };
-    }
-
-    public static String getSimpleProjectile(Projectile projectile) {
-        if (projectile instanceof Arrow) {
-            return "Projectile-Arrow";
-        } else if (projectile instanceof DragonFireball) {
-            return "Projectile-Dragon-Fireball";
-        } else if (projectile instanceof Egg) {
-            return "Projectile-Egg";
-        } else if (projectile instanceof EnderPearl) {
-            return "Projectile-EnderPearl";
-        } else if (projectile instanceof WitherSkull) {
-            return "Projectile-Fireball";
-        } else if (projectile instanceof Fireball) {
-            return "Projectile-Fireball";
-        } else if (projectile instanceof FishHook) {
-            return "Projectile-FishHook";
-        } else if (projectile instanceof LlamaSpit) {
-            return "Projectile-LlamaSpit";
-        } else if (projectile instanceof Snowball) {
-            return "Projectile-Snowball";
-        } else if (projectile instanceof Trident) {
-            return "Projectile-Trident";
-        } else if (projectile instanceof ShulkerBullet) {
-            return "Projectile-ShulkerBullet";
-        } else {
-            return "Projectile-Arrow";
-        }
-    }
-
-    public static String getSimpleCause(EntityDamageEvent.DamageCause damageCause) {
-        return switch (damageCause) {
-            case CONTACT ->
-                "Contact";
-            case ENTITY_ATTACK ->
-                "Melee";
-            case PROJECTILE ->
-                "Projectile";
-            case SUFFOCATION ->
-                "Suffocation";
-            case FALL ->
-                "Fall";
-            case FIRE ->
-                "Fire";
-            case FIRE_TICK ->
-                "Fire-Tick";
-            case MELTING ->
-                "Melting";
-            case LAVA ->
-                "Lava";
-            case DROWNING ->
-                "Drowning";
-            case BLOCK_EXPLOSION, ENTITY_EXPLOSION ->
-                "Explosion";
-            case VOID ->
-                "Void";
-            case LIGHTNING ->
-                "Lightning";
-            case SUICIDE ->
-                "Suicide";
-            case STARVATION ->
-                "Starvation";
-            case POISON ->
-                "Poison";
-            case MAGIC ->
-                "Magic";
-            case WITHER ->
-                "Wither";
-            case FALLING_BLOCK ->
-                "Falling-Block";
-            case THORNS ->
-                "Thorns";
-            case DRAGON_BREATH ->
-                "Dragon-Breath";
-            case CUSTOM ->
-                "Custom";
-            case FLY_INTO_WALL ->
-                "Fly-Into-Wall";
-            case HOT_FLOOR ->
-                "Hot-Floor";
-            case CRAMMING ->
-                "Cramming";
-            case DRYOUT ->
-                "Dryout";
-            case FREEZE ->
-                "Freeze";
-            case SONIC_BOOM ->
-                "Sonic-Boom";
-            default ->
-                "Unknown";
-        };
-    }
-
-    public static FileConfiguration getPlayerDeathMessages() {
-        return PlayerDeathMessages.getInstance().getConfig();
-    }
-
-    public static FileConfiguration getEntityDeathMessages() {
-        return EntityDeathMessages.getInstance().getConfig();
-    }
-
-    public static String getColorOfString(String input) {
-        StringBuilder result = new StringBuilder();
-        int length = input.length();
-        // Search backwards from the end as it is faster
-        for (int index = length - 1; index > -1; index--) {
-            char section = input.charAt(index);
-            if (section == ChatColor.COLOR_CHAR && index < length - 1) {
-                char c = input.charAt(index + 1);
-                ChatColor color = ChatColor.getByChar(c);
-                if (color != null) {
-                    result.insert(0, color);
-                    // Once we find a color or reset we can stop searching
-                    if (isChatColorAColor(color) || color.equals(ChatColor.RESET)) {
-                        break;
-                    }
-                }
-            }
-        }
-        return result.toString();
-    }
-
-    public static boolean isChatColorAColor(ChatColor chatColor) {
-        return chatColor != ChatColor.MAGIC && chatColor != ChatColor.BOLD
-                && chatColor != ChatColor.STRIKETHROUGH && chatColor != ChatColor.UNDERLINE
-                && chatColor != ChatColor.ITALIC;
     }
 
 }

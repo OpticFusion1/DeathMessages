@@ -10,6 +10,7 @@ import me.joshb.discordbotapi.server.DiscordBotAPI;
 import org.bukkit.command.CommandSender;
 import java.util.List;
 import optic_fusion1.deathmessages.config.ConfigFile;
+import optic_fusion1.deathmessages.util.Colorize;
 import optic_fusion1.deathmessages.util.FileStore;
 
 public class CommandDiscordLog extends DeathMessagesCommand {
@@ -54,35 +55,35 @@ public class CommandDiscordLog extends DeathMessagesCommand {
         }
         for (String log : discordLog) {
             if (log.equals("%discordConfig%")) {
-                sender.sendMessage(Assets.colorize("  &aEnabled: &c" + fileStore.getConfig().getBoolean(Config.HOOKS_DISCORD_ENABLED)));
-                sender.sendMessage(Assets.colorize("  &aChannels:"));
+                sender.sendMessage(Colorize.colorize("  &aEnabled: &c" + fileStore.getConfig().getBoolean(Config.HOOKS_DISCORD_ENABLED)));
+                sender.sendMessage(Colorize.colorize("  &aChannels:"));
                 //Player
-                sender.sendMessage(Assets.colorize("    &aPlayer-Enabled: &c" + fileStore.getConfig().getBoolean(Config.HOOKS_DISCORD_CHANNELS_PLAYER_ENABLED)));
-                sender.sendMessage(Assets.colorize("    &aPlayer-Channels:"));
+                sender.sendMessage(Colorize.colorize("    &aPlayer-Enabled: &c" + fileStore.getConfig().getBoolean(Config.HOOKS_DISCORD_CHANNELS_PLAYER_ENABLED)));
+                sender.sendMessage(Colorize.colorize("    &aPlayer-Channels:"));
                 for (String channels : fileStore.getConfig().getStringList(Config.HOOKS_DISCORD_CHANNELS_PLAYER_CHANNELS)) {
                     sender.sendMessage("      - " + channels);
                 }
                 //Mob
-                sender.sendMessage(Assets.colorize("    &aMob-Enabled: &c" + fileStore.getConfig().getBoolean(Config.HOOKS_DISCORD_CHANNELS_MOB_ENABLED)));
-                sender.sendMessage(Assets.colorize("    &aMob-Channels:"));
+                sender.sendMessage(Colorize.colorize("    &aMob-Enabled: &c" + fileStore.getConfig().getBoolean(Config.HOOKS_DISCORD_CHANNELS_MOB_ENABLED)));
+                sender.sendMessage(Colorize.colorize("    &aMob-Channels:"));
                 for (String channels : fileStore.getConfig().getStringList(Config.HOOKS_DISCORD_CHANNELS_MOB_CHANNELS)) {
                     sender.sendMessage("      - " + channels);
                 }
                 //Player
-                sender.sendMessage(Assets.colorize("    &aNatural-Enabled: &c" + fileStore.getConfig().getBoolean(Config.HOOKS_DISCORD_CHANNELS_NATURAL_ENABLED)));
-                sender.sendMessage(Assets.colorize("    &aNatural-Channels:"));
+                sender.sendMessage(Colorize.colorize("    &aNatural-Enabled: &c" + fileStore.getConfig().getBoolean(Config.HOOKS_DISCORD_CHANNELS_NATURAL_ENABLED)));
+                sender.sendMessage(Colorize.colorize("    &aNatural-Channels:"));
                 for (String channels : fileStore.getConfig().getStringList(Config.HOOKS_DISCORD_CHANNELS_NATURAL_CHANNELS)) {
                     sender.sendMessage("      - " + channels);
                 }
                 //Player
-                sender.sendMessage(Assets.colorize("    &aEntity-Enabled: &c" + fileStore.getConfig().getBoolean(Config.HOOKS_DISCORD_CHANNELS_ENTITY_ENABLED)));
-                sender.sendMessage(Assets.colorize("    &aEntity-Channels:"));
+                sender.sendMessage(Colorize.colorize("    &aEntity-Enabled: &c" + fileStore.getConfig().getBoolean(Config.HOOKS_DISCORD_CHANNELS_ENTITY_ENABLED)));
+                sender.sendMessage(Colorize.colorize("    &aEntity-Channels:"));
                 for (String channels : fileStore.getConfig().getStringList(Config.HOOKS_DISCORD_CHANNELS_ENTITY_CHANNELS)) {
                     sender.sendMessage("      - " + channels);
                 }
                 continue;
             }
-            sender.sendMessage(Assets.colorize(log
+            sender.sendMessage(Colorize.colorize(log
                     .replaceAll("%discordJar%", discordJar)
                     .replaceAll("%discordToken%", discordToken)
                     .replace("%prefix%", messagesConfigFile.getConfig().getString("Prefix"))));

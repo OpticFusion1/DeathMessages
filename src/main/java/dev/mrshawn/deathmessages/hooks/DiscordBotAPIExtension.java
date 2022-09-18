@@ -6,7 +6,6 @@ import dev.mrshawn.deathmessages.enums.MessageType;
 import dev.mrshawn.deathmessages.files.Config;
 import dev.mrshawn.deathmessages.utils.Assets;
 import dev.mrshawn.deathmessages.utils.CommentedConfiguration;
-import static github.scarsz.discordsrv.DiscordSRV.config;
 import java.awt.Color;
 import me.joshb.discordbotapi.server.DiscordBotAPI;
 import net.dv8tion.jda.api.EmbedBuilder;
@@ -14,15 +13,13 @@ import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.TextChannel;
 import org.bukkit.ChatColor;
-import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.FallingBlock;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import java.time.Instant;
 import java.util.List;
-import me.joshb.discordbotapi.bungee.config.Messages;
-import optic_fusion1.deathmessages.config.ConfigFile;
+import optic_fusion1.deathmessages.util.Colorize;
 import optic_fusion1.deathmessages.util.FileStore;
 
 public class DiscordBotAPIExtension {
@@ -58,7 +55,7 @@ public class DiscordBotAPIExtension {
             }
             TextChannel textChannel = g.getTextChannelById(channelID);
             if (getMessages().getBoolean("Discord.DeathMessage.Remove-Plugin-Prefix")) {
-                String prefix = Assets.colorize(getMessages().getString("Prefix"));
+                String prefix = Colorize.colorize(getMessages().getString("Prefix"));
                 prefix = ChatColor.stripColor(prefix);
                 message = message.substring(prefix.length());
             }
@@ -104,7 +101,7 @@ public class DiscordBotAPIExtension {
             TextChannel textChannel = g.getTextChannelById(channelID);
             if (getMessages().getBoolean("Discord.DeathMessage.Remove-Plugin-Prefix")
                     && fileStore.getConfig().getBoolean(Config.ADD_PREFIX_TO_ALL_MESSAGES)) {
-                String prefix = Assets.colorize(getMessages().getString("Prefix"));
+                String prefix = Colorize.colorize(getMessages().getString("Prefix"));
                 prefix = ChatColor.stripColor(prefix);
                 message = message.substring(prefix.length());
             }

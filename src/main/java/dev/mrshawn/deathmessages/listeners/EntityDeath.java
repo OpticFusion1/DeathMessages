@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 import optic_fusion1.deathmessages.config.ConfigFile;
 import optic_fusion1.deathmessages.util.FileStore;
+import optic_fusion1.deathmessages.util.Utils;
 import org.bukkit.entity.EnderCrystal;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Firework;
@@ -83,9 +84,9 @@ public class EntityDeath implements Listener {
                     }
                     callEvent(tx, p);
                 } else if (pm.getLastDamage().equals(EntityDamageEvent.DamageCause.PROJECTILE)) {
-                    callEvent(Assets.getNaturalDeath(pm, Assets.getSimpleProjectile(pm.getLastProjectileEntity())), p);
+                    callEvent(Assets.getNaturalDeath(pm, Utils.getSimpleProjectile(pm.getLastProjectileEntity())), p);
                 } else {
-                    callEvent(Assets.getNaturalDeath(pm, Assets.getSimpleCause(pm.getLastDamage())), p);
+                    callEvent(Assets.getNaturalDeath(pm, Utils.getSimpleCause(pm.getLastDamage())), p);
                 }
             } else {
                 //Killed by mob

@@ -157,7 +157,7 @@ public class DeathMessages extends JavaPlugin {
             mythicMobs = MythicBukkit.inst();
             mythicMobsEnabled = true;
             getLogger().info("MythicMobs Hook Enabled!");
-            Bukkit.getPluginManager().registerEvents(new MobDeath(fileStore, configManager.getSettingsConfig()), this);
+            Bukkit.getPluginManager().registerEvents(new MobDeath(this), this);
         }
 
         if (fileStore.getConfig().getBoolean(Config.HOOKS_BUNGEE_ENABLED)) {

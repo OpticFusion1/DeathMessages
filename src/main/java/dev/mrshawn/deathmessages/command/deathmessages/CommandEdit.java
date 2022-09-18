@@ -7,6 +7,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.EntityType;
 import java.util.List;
 import optic_fusion1.deathmessages.config.ConfigFile;
+import optic_fusion1.deathmessages.util.Utils;
 
 public class CommandEdit extends DeathMessagesCommand {
 
@@ -66,7 +67,7 @@ public class CommandEdit extends DeathMessagesCommand {
                         sender.sendMessage(Assets.formatMessage("Commands.DeathMessages.Sub-Commands.Edit.Invalid-Arguments"));
                         return;
                     }
-                    if (!Assets.isNumeric(args[5])) {
+                    if (!Utils.isNumeric(args[5])) {
                         sender.sendMessage(Assets.formatMessage("Commands.DeathMessages.Sub-Commands.Edit.Invalid-Placeholder"));
                         return;
                     }
@@ -141,7 +142,7 @@ public class CommandEdit extends DeathMessagesCommand {
                         sender.sendMessage(Assets.formatMessage("Commands.DeathMessages.Sub-Commands.Edit.Invalid-Arguments"));
                         return;
                     }
-                    if (!Assets.isNumeric(args[4])) {
+                    if (!Utils.isNumeric(args[4])) {
                         sender.sendMessage(Assets.formatMessage("Commands.DeathMessages.Sub-Commands.Edit.Invalid-Placeholder"));
                         return;
                     }
