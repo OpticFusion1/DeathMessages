@@ -11,8 +11,17 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByBlockEvent;
 import java.util.Set;
+import optic_fusion1.deathmessages.config.ConfigFile;
 
 public class EntityDamageByBlock implements Listener {
+
+    private ConfigFile entityDeathMessagesConfig;
+    private DeathMessages deathMessages;
+
+    public EntityDamageByBlock(ConfigFile entityDeathMessagesConfig, DeathMessages deathMessages) {
+        this.entityDeathMessagesConfig = entityDeathMessagesConfig;
+        this.deathMessages = deathMessages;
+    }
 
     @EventHandler(priority = EventPriority.HIGH)
     public void onEntityDeath(EntityDamageByBlockEvent e) {
@@ -21,15 +30,13 @@ public class EntityDamageByBlock implements Listener {
             PlayerManager pm = PlayerManager.getPlayer(p);
             pm.setLastDamageCause(e.getCause());
         } else {
-            if (EntityDeathMessages.getInstance().getConfig().getConfigurationSection("Entities") == null) {
+            if (entityDeathMessagesConfig.getConfig().getConfigurationSection("Entities") == null) {
                 return;
             }
-            Set<String> listenedMobs = EntityDeathMessages.getInstance().getConfig().getConfigurationSection("Entities")
+            Set<String> listenedMobs = entityDeathMessagesConfig.getConfig().getConfigurationSection("Entities")
                     .getKeys(false);
-            if (EntityDeathMessages.getInstance().getConfig().getConfigurationSection("Mythic-Mobs-Entities") != null
-                    && DeathMessages.getInstance().mythicmobsEnabled) {
-                listenedMobs.addAll(EntityDeathMessages.getInstance().getConfig().getConfigurationSection("Mythic-Mobs-Entities")
-                        .getKeys(false));
+            if (entityDeathMessagesConfig.getConfig().getConfigurationSection("Mythic-Mobs-Entities") != null && deathMessages.isMythicMobsEnabled()) {
+                listenedMobs.addAll(entityDeathMessagesConfig.getConfig().getConfigurationSection("Mythic-Mobs-Entities").getKeys(false));
             }
             if (listenedMobs.isEmpty()) {
                 return;
@@ -39,11 +46,10 @@ public class EntityDamageByBlock implements Listener {
                     EntityManager em;
                     if (EntityManager.getEntity(e.getEntity().getUniqueId()) == null) {
                         MobType mobType = MobType.VANILLA;
-                        if (DeathMessages.getInstance().mythicmobsEnabled
-                                && DeathMessages.getInstance().mythicMobs.getAPIHelper().isMythicMob(e.getEntity().getUniqueId())) {
+                        if (deathMessages.isMythicMobsEnabled() && deathMessages.getMythicMobs().getAPIHelper().isMythicMob(e.getEntity().getUniqueId())) {
                             mobType = MobType.MYTHIC_MOB;
                         }
-                        em = new EntityManager(e.getEntity(), e.getEntity().getUniqueId(), mobType);
+                        em = new EntityManager(deathMessages, e.getEntity(), e.getEntity().getUniqueId(), mobType);
                     } else {
                         em = EntityManager.getEntity(e.getEntity().getUniqueId());
                     }

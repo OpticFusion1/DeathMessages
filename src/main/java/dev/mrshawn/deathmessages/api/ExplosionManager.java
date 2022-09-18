@@ -18,7 +18,7 @@ public class ExplosionManager {
 
     public static List<ExplosionManager> explosions = new ArrayList<>();
 
-    public ExplosionManager(UUID pyro, Material material, Location location, List<UUID> effected) {
+    public ExplosionManager(DeathMessages deathMessages, UUID pyro, Material material, Location location, List<UUID> effected) {
         this.pyro = pyro;
         this.material = material;
         this.location = location;
@@ -31,7 +31,7 @@ public class ExplosionManager {
             public void run() {
                 destroy();
             }
-        }.runTaskLater(DeathMessages.getInstance(), 5 * 20);
+        }.runTaskLater(deathMessages, 5 * 20);
     }
 
     public UUID getPyro() {

@@ -25,7 +25,7 @@ public class OnJoin implements Listener {
             @Override
             public void run() {
                 if (PlayerManager.getPlayer(p) == null) {
-                    new PlayerManager(p);
+                    new PlayerManager(deathMessages, p);
                 }
             }
         }.runTaskAsynchronously(deathMessages);

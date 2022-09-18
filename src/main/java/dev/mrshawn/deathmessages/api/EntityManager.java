@@ -4,7 +4,6 @@ import dev.mrshawn.deathmessages.DeathMessages;
 import dev.mrshawn.deathmessages.enums.MobType;
 import dev.mrshawn.deathmessages.files.Config;
 import dev.mrshawn.deathmessages.files.FileSettings;
-import dev.mrshawn.deathmessages.kotlin.files.FileStore;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Projectile;
@@ -15,11 +14,10 @@ import org.bukkit.scheduler.BukkitTask;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import optic_fusion1.deathmessages.util.FileStore;
 
 //Class designed to keep track of damage and data to mobs that were damaged by players
 public class EntityManager {
-
-    private static final FileSettings<Config> config = FileStore.INSTANCE.getCONFIG();
 
     private Entity entity;
     private UUID entityUUID;
@@ -29,12 +27,15 @@ public class EntityManager {
     private Entity lastExplosiveEntity;
     private Projectile lastPlayerProjectile;
     private Location lastLocation;
-
     private BukkitTask lastPlayerTask;
+    private DeathMessages deathMessages;
+    private FileStore fileStore;
 
     private static final List<EntityManager> entities = new ArrayList<>();
 
-    public EntityManager(Entity entity, UUID entityUUID, MobType mobType) {
+    public EntityManager(DeathMessages deathMessages, Entity entity, UUID entityUUID, MobType mobType) {
+        this.deathMessages = deathMessages;
+        fileStore = deathMessages.getFileStore();
         this.entity = entity;
         this.entityUUID = entityUUID;
         this.mobType = mobType;
@@ -72,7 +73,7 @@ public class EntityManager {
             public void run() {
                 destroy();
             }
-        }.runTaskLater(DeathMessages.getInstance(), config.getInt(Config.EXPIRE_LAST_DAMAGE_EXPIRE_ENTITY) * 20L);
+        }.runTaskLater(deathMessages, fileStore.getConfig().getInt(Config.EXPIRE_LAST_DAMAGE_EXPIRE_ENTITY) * 20L);
         this.damageCause = DamageCause.CUSTOM;
     }
 

@@ -1,6 +1,8 @@
 package dev.mrshawn.deathmessages;
 
 import com.sk89q.worldguard.bukkit.WorldGuardPlugin;
+import dev.mrshawn.deathMessages.listeners.customlisteners.BroadcastEntityDeathListener;
+import dev.mrshawn.deathMessages.listeners.customlisteners.BroadcastPlayerDeathListener;
 import dev.mrshawn.deathmessages.api.PlayerManager;
 import dev.mrshawn.deathmessages.command.deathmessages.CommandManager;
 import dev.mrshawn.deathmessages.command.deathmessages.TabCompleter;
@@ -21,8 +23,6 @@ import dev.mrshawn.deathmessages.listeners.OnMove;
 import dev.mrshawn.deathmessages.listeners.PlayerDeath;
 import dev.mrshawn.deathmessages.listeners.PluginMessaging;
 import dev.mrshawn.deathmessages.listeners.customlisteners.BlockExplosion;
-import dev.mrshawn.deathmessages.listeners.customlisteners.BroadcastEntityDeathListener;
-import dev.mrshawn.deathmessages.listeners.customlisteners.BroadcastPlayerDeathListener;
 import dev.mrshawn.deathmessages.listeners.mythicmobs.MobDeath;
 import dev.mrshawn.deathmessages.worldguard.WorldGuard7Extension;
 import dev.mrshawn.deathmessages.worldguard.WorldGuardExtension;
@@ -38,6 +38,7 @@ import java.util.List;
 import java.util.logging.Level;
 import optic_fusion1.deathmessages.config.ConfigManager;
 import optic_fusion1.deathmessages.util.FileStore;
+import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.PluginManager;
 
@@ -92,16 +93,16 @@ public class DeathMessages extends JavaPlugin {
         configManager = new ConfigManager(this);
         configManager.initialize();
         fileStore = new FileStore(this);
-        DeathMessages.eventPriority = EventPriority.valueOf(
-                configManager.getString(Config.DEATH_LISTENER_PRIORITY).toUpperCase()
+        eventPriority = EventPriority.valueOf(
+                fileStore.getConfig().getString(Config.DEATH_LISTENER_PRIORITY).toUpperCase()
         );
     }
 
     private void initializeListeners() {
-        registerListeners(new BroadcastPlayerDeathListener(), new BroadcastEntityDeathListener(configManager.getMessagesConfig(), fileStore),
-                new BlockExplosion(), new EntityDamage(this), new EntityDamageByBlock(),
+        registerListeners(new BroadcastPlayerDeathListener(this), new BroadcastEntityDeathListener(this),
+                new BlockExplosion(), new EntityDamage(this), new EntityDamageByBlock(configManager.getEntityDeathMessagesConfig(), this),
                 new EntityDamageByEntity(this, configManager.getEntityDeathMessagesConfig()),
-                new EntityDeath(this), new InteractEvent(), new OnJoin(this), new OnMove(), new PlayerDeath(fileStore),
+                new EntityDeath(this), new InteractEvent(this), new OnJoin(this), new OnMove(), new PlayerDeath(fileStore),
                 new OnChatListener(configManager.getPlayerDeathMessagesConfig(), configManager.getEntityDeathMessagesConfig()));
     }
 
@@ -152,13 +153,6 @@ public class DeathMessages extends JavaPlugin {
                 getLogger().log(Level.SEVERE, "Error adding plugin to ignored plugins list: {0}", exception.getMessage());
             }
         }
-
-//
-//        if (Bukkit.getPluginManager().getPlugin("CombatLogX") != null) {
-//            combatLogXAPIEnabled = true;
-//            Bukkit.getPluginManager().registerEvents(new PlayerUntag(), this);
-//            getLogger().info("CombatLogX Hook Enabled!");
-//        }
         if (Bukkit.getPluginManager().getPlugin("MythicMobs") != null && fileStore.getConfig().getBoolean(Config.HOOKS_MYTHICMOBS_ENABLED)) {
             mythicMobs = MythicBukkit.inst();
             mythicMobsEnabled = true;
@@ -205,7 +199,10 @@ public class DeathMessages extends JavaPlugin {
     }
 
     private void initializeOnlinePlayers() {
-        Bukkit.getOnlinePlayers().forEach(PlayerManager::new);
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            new PlayerManager(this, player);
+        }
+//        Bukkit.getOnlinePlayers().forEach(PlayerManager::new);
     }
 
     private void checkGameRules() {

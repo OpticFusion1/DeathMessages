@@ -52,7 +52,7 @@ public class EntityDamage implements Listener {
                         if (deathMessages.isMythicMobsEnabled() && deathMessages.getMythicMobs().getAPIHelper().isMythicMob(e.getEntity().getUniqueId())) {
                             mobType = MobType.MYTHIC_MOB;
                         }
-                        em = new EntityManager(e.getEntity(), e.getEntity().getUniqueId(), mobType);
+                        em = new EntityManager(deathMessages, e.getEntity(), e.getEntity().getUniqueId(), mobType);
                     } else {
                         em = EntityManager.getEntity(e.getEntity().getUniqueId());
                     }

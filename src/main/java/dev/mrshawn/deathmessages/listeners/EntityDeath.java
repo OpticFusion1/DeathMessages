@@ -49,7 +49,7 @@ public class EntityDeath implements Listener {
             Player p = (Player) e.getEntity();
             PlayerManager pm = PlayerManager.getPlayer(p);
             if (pm == null) {
-                pm = new PlayerManager(p);
+                pm = new PlayerManager(deathMessages, p);
             }
 
             if (e.getEntity().getLastDamageCause() == null) {

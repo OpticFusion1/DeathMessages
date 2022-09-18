@@ -1,4 +1,4 @@
-package dev.mrshawn.deathmessages.listeners.customlisteners;
+package dev.mrshawn.deathMessages.listeners.customlisteners;
 
 import com.sk89q.worldguard.protection.flags.StateFlag;
 import dev.mrshawn.deathmessages.DeathMessages;
@@ -20,15 +20,18 @@ import java.util.List;
 import java.util.regex.Matcher;
 import optic_fusion1.deathmessages.config.ConfigFile;
 import optic_fusion1.deathmessages.util.FileStore;
+import optic_fusion1.deathmessages.util.PluginMessagingUtils;
 
 public class BroadcastEntityDeathListener implements Listener {
 
     private ConfigFile messagesConfig;
     private FileStore fileStore;
+    private DeathMessages deathMessages;
 
-    public BroadcastEntityDeathListener(ConfigFile messagesConfig, FileStore fileStore) {
-        this.messagesConfig = messagesConfig;
-        this.fileStore = fileStore;
+    public BroadcastEntityDeathListener(DeathMessages deathMessages) {
+        this.deathMessages = deathMessages;
+        messagesConfig = deathMessages.getConfigManager().getMessagesConfig();
+        fileStore = deathMessages.getFileStore();
     }
 
     @EventHandler
@@ -68,13 +71,13 @@ public class BroadcastEntityDeathListener implements Listener {
                         }
                     } else {
                         if (pms.getMessagesEnabled()) {
-                            if (DeathMessages.worldGuardExtension != null) {
-                                if (DeathMessages.worldGuardExtension.getRegionState(pls, e.getMessageType().getValue()).equals(StateFlag.State.DENY)) {
+                            if (deathMessages.getWorldGuardExtension() != null) {
+                                if (deathMessages.getWorldGuardExtension().getRegionState(pls, e.getMessageType().getValue()).equals(StateFlag.State.DENY)) {
                                     return;
                                 }
                             }
                             pls.spigot().sendMessage(e.getTextComponent());
-                            PluginMessaging.sendPluginMSG(pms.getPlayer(), e.getTextComponent().toString());
+                            PluginMessagingUtils.sendMessage(deathMessages, fileStore,  pms.getPlayer(), e.getTextComponent().toString());
                         }
                         if (fileStore.getConfig().getBoolean(Config.HOOKS_DISCORD_WORLD_WHITELIST_ENABLED)) {
                             List<String> discordWorldWhitelist = fileStore.getConfig().getStringList(Config.HOOKS_DISCORD_WORLD_WHITELIST_WORLDS);
@@ -90,18 +93,18 @@ public class BroadcastEntityDeathListener implements Listener {
                             }
                             //Will reach the discord broadcast
                         }
-                        if (DeathMessages.discordBotAPIExtension != null && !discordSent) {
-                            DeathMessages.discordBotAPIExtension.sendEntityDiscordMessage(ChatColor.stripColor(e.getTextComponent().toLegacyText()), pm, e.getEntity(), hasOwner, e.getMessageType());
+                        if (deathMessages.getDiscordBotAPIExtension() != null && !discordSent) {
+                            deathMessages.getDiscordBotAPIExtension().sendEntityDiscordMessage(ChatColor.stripColor(e.getTextComponent().toLegacyText()), pm, e.getEntity(), hasOwner, e.getMessageType());
                             discordSent = true;
                         }
-                        if (DeathMessages.discordSRVExtension != null && !discordSent) {
-                            DeathMessages.discordSRVExtension.sendEntityDiscordMessage(ChatColor.stripColor(e.getTextComponent().toLegacyText()), pm, e.getEntity(), hasOwner, e.getMessageType());
+                        if (deathMessages.getDiscordSRVExtension() != null && !discordSent) {
+                            deathMessages.getDiscordSRVExtension().sendEntityDiscordMessage(ChatColor.stripColor(e.getTextComponent().toLegacyText()), pm, e.getEntity(), hasOwner, e.getMessageType());
                             discordSent = true;
                         }
                     }
                 }
             }
-            PluginMessaging.sendPluginMSG(e.getPlayer().getPlayer(), ComponentSerializer.toString(e.getTextComponent()));
+            PluginMessagingUtils.sendMessage(deathMessages, fileStore,  e.getPlayer().getPlayer(), e.getTextComponent().toString());
         }
         EntityManager.getEntity(e.getEntity().getUniqueId()).destroy();
     }

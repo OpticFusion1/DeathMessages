@@ -1,10 +1,8 @@
 package dev.mrshawn.deathmessages.api;
 
 import dev.mrshawn.deathmessages.DeathMessages;
-import dev.mrshawn.deathmessages.config.UserData;
 import dev.mrshawn.deathmessages.files.Config;
-import dev.mrshawn.deathmessages.files.FileSettings;
-import dev.mrshawn.deathmessages.kotlin.files.FileStore;
+import static github.scarsz.discordsrv.DiscordSRV.config;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -15,16 +13,16 @@ import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
+import optic_fusion1.deathmessages.config.ConfigFile;
+import optic_fusion1.deathmessages.util.FileStore;
 
 public class PlayerManager {
 
-    private static final FileSettings<Config> config = FileStore.INSTANCE.getCONFIG();
-
+    private FileStore fileStore;
     private final UUID uuid;
     private final String name;
     private boolean messagesEnabled;
@@ -43,23 +41,28 @@ public class PlayerManager {
     private BukkitTask lastEntityTask;
 
     private static final List<PlayerManager> players = new ArrayList<>();
+    private boolean saveUserData;
+    private ConfigFile userDataConfigFile;
+    
+//    public boolean saveUserData = fileStore.getConfig().getInt(Config.SAVED_USER_DATA);
+    private DeathMessages deathMessages;
 
-    public boolean saveUserData = config.getBoolean(Config.SAVED_USER_DATA);
-
-    public PlayerManager(Player p) {
-
+    public PlayerManager(DeathMessages deathMessages, Player p) {
+        fileStore = deathMessages.getFileStore();
+        saveUserData = fileStore.getConfig().getBoolean(Config.SAVED_USER_DATA);
+        userDataConfigFile = deathMessages.getConfigManager().getUserDataConfig();
         this.uuid = p.getUniqueId();
         this.name = p.getName();
 
-        if (saveUserData && !UserData.getInstance().getConfig().contains(p.getUniqueId().toString())) {
-            UserData.getInstance().getConfig().set(p.getUniqueId() + ".username", p.getName());
-            UserData.getInstance().getConfig().set(p.getUniqueId() + ".messages-enabled", true);
-            UserData.getInstance().getConfig().set(p.getUniqueId() + ".is-blacklisted", false);
-            UserData.getInstance().save();
+        if (saveUserData && !userDataConfigFile.getConfig().contains(p.getUniqueId().toString())) {
+            userDataConfigFile.getConfig().set(p.getUniqueId() + ".username", p.getName());
+            userDataConfigFile.getConfig().set(p.getUniqueId() + ".messages-enabled", true);
+            userDataConfigFile.getConfig().set(p.getUniqueId() + ".is-blacklisted", false);
+            userDataConfigFile.save();
         }
         if (saveUserData) {
-            messagesEnabled = UserData.getInstance().getConfig().getBoolean(p.getUniqueId() + ".messages-enabled");
-            isBlacklisted = UserData.getInstance().getConfig().getBoolean(p.getUniqueId() + ".is-blacklisted");
+            messagesEnabled = userDataConfigFile.getConfig().getBoolean(p.getUniqueId() + ".messages-enabled");
+            isBlacklisted = userDataConfigFile.getConfig().getBoolean(p.getUniqueId() + ".is-blacklisted");
         } else {
             messagesEnabled = true;
             isBlacklisted = false;
@@ -87,8 +90,8 @@ public class PlayerManager {
     public void setMessagesEnabled(boolean b) {
         this.messagesEnabled = b;
         if (saveUserData) {
-            UserData.getInstance().getConfig().set(uuid.toString() + ".messages-enabled", b);
-            UserData.getInstance().save();
+            userDataConfigFile.getConfig().set(uuid.toString() + ".messages-enabled", b);
+            userDataConfigFile.save();
         }
     }
 
@@ -99,8 +102,8 @@ public class PlayerManager {
     public void setBlacklisted(boolean b) {
         this.isBlacklisted = b;
         if (saveUserData) {
-            UserData.getInstance().getConfig().set(uuid.toString() + ".is-blacklisted", b);
-            UserData.getInstance().save();
+            userDataConfigFile.getConfig().set(uuid.toString() + ".is-blacklisted", b);
+            userDataConfigFile.save();
         }
     }
 
@@ -127,7 +130,7 @@ public class PlayerManager {
             public void run() {
                 setLastEntityDamager(null);
             }
-        }.runTaskLater(DeathMessages.getInstance(), config.getInt(Config.EXPIRE_LAST_DAMAGE_EXPIRE_PLAYER) * 20L);
+        }.runTaskLater(deathMessages, fileStore.getConfig().getInt(Config.EXPIRE_LAST_DAMAGE_EXPIRE_PLAYER) * 20L);
     }
 
     public Entity getLastEntityDamager() {
@@ -175,7 +178,7 @@ public class PlayerManager {
     }
 
     public void setCooldown() {
-        cooldown = config.getInt(Config.COOLDOWN);
+        cooldown = fileStore.getConfig().getInt(Config.COOLDOWN);
         cooldownTask = new BukkitRunnable() {
             @Override
             public void run() {
@@ -184,7 +187,7 @@ public class PlayerManager {
                 }
                 cooldown--;
             }
-        }.runTaskTimer(DeathMessages.getInstance(), 0, 20);
+        }.runTaskTimer(deathMessages, 0, 20);
     }
 
     public void setCachedInventory(Inventory inventory) {

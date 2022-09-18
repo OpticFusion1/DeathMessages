@@ -6,8 +6,17 @@ import dev.mrshawn.deathmessages.utils.Assets;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.EntityType;
 import java.util.List;
+import optic_fusion1.deathmessages.config.ConfigFile;
 
 public class CommandEdit extends DeathMessagesCommand {
+
+    private ConfigFile playerDeathMessagesConfigFile;
+    private ConfigFile entityDeathMessagesConfigFile;
+
+    public CommandEdit(ConfigFile playerDeathMessagesConfigFile, ConfigFile entityDeathMessagesConfigFile) {
+        this.playerDeathMessagesConfigFile = playerDeathMessagesConfigFile;
+        this.entityDeathMessagesConfigFile = entityDeathMessagesConfigFile;
+    }
 
     @Override
     public String command() {
@@ -63,39 +72,39 @@ public class CommandEdit extends DeathMessagesCommand {
                     }
                     int placeholder = Integer.parseInt(args[5]) - 1;
                     if (args[2].equalsIgnoreCase("solo")) {
-                        List<String> list = PlayerDeathMessages.getInstance().getConfig().getStringList("Mobs." + mobName + ".Solo." + damageType);
+                        List<String> list = playerDeathMessagesConfigFile.getConfig().getStringList("Mobs." + mobName + ".Solo." + damageType);
                         if (list.get(placeholder) == null) {
                             sender.sendMessage(Assets.formatMessage("Commands.DeathMessages.Sub-Commands.Edit.Invalid-Selection"));
                             return;
                         }
                         sender.sendMessage(Assets.formatMessage("Commands.DeathMessages.Sub-Commands.Edit.Removed-Message").replaceAll("%message%", list.get(placeholder)));
                         list.remove(placeholder);
-                        PlayerDeathMessages.getInstance().getConfig().set("Mobs." + mobName + ".Solo." + damageType, list);
-                        PlayerDeathMessages.getInstance().save();
-                        PlayerDeathMessages.getInstance().reload();
+                        playerDeathMessagesConfigFile.getConfig().set("Mobs." + mobName + ".Solo." + damageType, list);
+                        playerDeathMessagesConfigFile.save();
+                        playerDeathMessagesConfigFile.reload();
                     } else if (args[2].equalsIgnoreCase("gang")) {
-                        List<String> list = PlayerDeathMessages.getInstance().getConfig().getStringList("Mobs." + mobName + ".Gang." + damageType);
+                        List<String> list = playerDeathMessagesConfigFile.getConfig().getStringList("Mobs." + mobName + ".Gang." + damageType);
                         if (list.get(placeholder) == null) {
                             sender.sendMessage(Assets.formatMessage("Commands.DeathMessages.Sub-Commands.Edit.Invalid-Selection"));
                             return;
                         }
                         sender.sendMessage(Assets.formatMessage("Commands.DeathMessages.Sub-Commands.Edit.Removed-Message").replaceAll("%message%", list.get(placeholder)));
                         list.remove(placeholder);
-                        PlayerDeathMessages.getInstance().getConfig().set("Mobs." + mobName + ".Gang." + damageType, list);
-                        PlayerDeathMessages.getInstance().save();
-                        PlayerDeathMessages.getInstance().reload();
+                        playerDeathMessagesConfigFile.getConfig().set("Mobs." + mobName + ".Gang." + damageType, list);
+                        playerDeathMessagesConfigFile.save();
+                        playerDeathMessagesConfigFile.reload();
                     }
 
                 } else if (args[4].equalsIgnoreCase("list")) {
                     int placeholder = 1;
                     if (args[2].equalsIgnoreCase("solo")) {
-                        List<String> list = PlayerDeathMessages.getInstance().getConfig().getStringList("Mobs." + mobName + ".Solo." + damageType);
+                        List<String> list = playerDeathMessagesConfigFile.getConfig().getStringList("Mobs." + mobName + ".Solo." + damageType);
                         for (String messages : list) {
                             sender.sendMessage("[" + placeholder + "] " + Assets.formatString(messages));
                             placeholder++;
                         }
                     } else if (args[2].equalsIgnoreCase("gang")) {
-                        List<String> list = PlayerDeathMessages.getInstance().getConfig().getStringList("Mobs." + mobName + ".Gang." + damageType);
+                        List<String> list = playerDeathMessagesConfigFile.getConfig().getStringList("Mobs." + mobName + ".Gang." + damageType);
                         for (String messages : list) {
                             sender.sendMessage("[" + placeholder + "] " + Assets.formatString(messages));
                             placeholder++;
@@ -137,20 +146,20 @@ public class CommandEdit extends DeathMessagesCommand {
                         return;
                     }
                     int placeholder = Integer.parseInt(args[4]) - 1;
-                    List<String> list = EntityDeathMessages.getInstance().getConfig().getStringList("Entities." + mobName + "." + damageType);
+                    List<String> list = entityDeathMessagesConfigFile.getConfig().getStringList("Entities." + mobName + "." + damageType);
                     if (list.get(placeholder) == null) {
                         sender.sendMessage(Assets.formatMessage("Commands.DeathMessages.Sub-Commands.Edit.Invalid-Selection"));
                         return;
                     }
                     sender.sendMessage(Assets.formatMessage("Commands.DeathMessages.Sub-Commands.Edit.Removed-Message").replaceAll("%message%", list.get(placeholder)));
                     list.remove(placeholder);
-                    EntityDeathMessages.getInstance().getConfig().set("Entities." + mobName + "." + damageType, list);
-                    EntityDeathMessages.getInstance().save();
-                    EntityDeathMessages.getInstance().reload();
+                    entityDeathMessagesConfigFile.getConfig().set("Entities." + mobName + "." + damageType, list);
+                    entityDeathMessagesConfigFile.save();
+                    entityDeathMessagesConfigFile.reload();
 
                 } else if (args[3].equalsIgnoreCase("list")) {
                     int placeholder = 1;
-                    List<String> list = EntityDeathMessages.getInstance().getConfig().getStringList("Entities." + mobName + "." + damageType);
+                    List<String> list = entityDeathMessagesConfigFile.getConfig().getStringList("Entities." + mobName + "." + damageType);
                     for (String messages : list) {
                         sender.sendMessage("[" + placeholder + "] " + Assets.formatString(messages));
                         placeholder++;

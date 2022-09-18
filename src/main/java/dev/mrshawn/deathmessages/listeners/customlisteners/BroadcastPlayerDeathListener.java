@@ -1,4 +1,4 @@
-package dev.mrshawn.deathmessages.listeners.customlisteners;
+package dev.mrshawn.deathMessages.listeners.customlisteners;
 
 import com.sk89q.worldguard.protection.flags.StateFlag;
 import dev.mrshawn.deathmessages.DeathMessages;
@@ -6,8 +6,6 @@ import dev.mrshawn.deathmessages.api.PlayerManager;
 import dev.mrshawn.deathmessages.api.events.BroadcastDeathMessageEvent;
 import dev.mrshawn.deathmessages.enums.MessageType;
 import dev.mrshawn.deathmessages.files.Config;
-import dev.mrshawn.deathmessages.files.FileSettings;
-import dev.mrshawn.deathmessages.listeners.PluginMessaging;
 import dev.mrshawn.deathmessages.utils.Assets;
 import net.md_5.bungee.chat.ComponentSerializer;
 import org.bukkit.Bukkit;
@@ -18,19 +16,29 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import java.util.List;
 import java.util.regex.Matcher;
+import optic_fusion1.deathmessages.config.ConfigFile;
+import optic_fusion1.deathmessages.util.FileStore;
+import optic_fusion1.deathmessages.util.PluginMessagingUtils;
 
 public class BroadcastPlayerDeathListener implements Listener {
 
-    private static final FileSettings<Config> config = FileStore.INSTANCE.getCONFIG();
+    private FileStore fileStore;
+    private boolean discordSent;
+    private DeathMessages deathMessages;
+    private ConfigFile messagesConfigFile;
 
-    private boolean discordSent = false;
+    public BroadcastPlayerDeathListener(DeathMessages deathMessages) {
+        this.deathMessages = deathMessages;
+        fileStore = deathMessages.getFileStore();
+        messagesConfigFile = deathMessages.getConfigManager().getMessagesConfig();
+    }
 
     @EventHandler
     public void broadcastListener(BroadcastDeathMessageEvent e) {
 
         if (!e.isCancelled()) {
-            if (Messages.getInstance().getConfig().getBoolean("Console.Enabled")) {
-                String message = Assets.playerDeathPlaceholders(Messages.getInstance().getConfig().getString("Console.Message"), PlayerManager.getPlayer(e.getPlayer()), e.getLivingEntity());
+            if (messagesConfigFile.getConfig().getBoolean("Console.Enabled")) {
+                String message = Assets.playerDeathPlaceholders(messagesConfigFile.getConfig().getString("Console.Message"), PlayerManager.getPlayer(e.getPlayer()), e.getLivingEntity());
                 message = message.replaceAll("%message%", Matcher.quoteReplacement(e.getTextComponent().toLegacyText()));
                 Bukkit.getConsoleSender().sendMessage(message);
             }
@@ -42,21 +50,21 @@ public class BroadcastPlayerDeathListener implements Listener {
                 pm.setCooldown();
             }
 
-            boolean privatePlayer = config.getBoolean(Config.PRIVATE_MESSAGES_PLAYER);
-            boolean privateMobs = config.getBoolean(Config.PRIVATE_MESSAGES_MOBS);
-            boolean privateNatural = config.getBoolean(Config.PRIVATE_MESSAGES_NATURAL);
+            boolean privatePlayer = fileStore.getConfig().getBoolean(Config.PRIVATE_MESSAGES_PLAYER);
+            boolean privateMobs = fileStore.getConfig().getBoolean(Config.PRIVATE_MESSAGES_MOBS);
+            boolean privateNatural = fileStore.getConfig().getBoolean(Config.PRIVATE_MESSAGES_NATURAL);
 
             //To reset for each death message
             discordSent = false;
 
             for (World w : e.getBroadcastedWorlds()) {
-                if (config.getStringList(Config.DISABLED_WORLDS).contains(w.getName())) {
+                if (fileStore.getConfig().getStringList(Config.DISABLED_WORLDS).contains(w.getName())) {
                     continue;
                 }
                 for (Player pls : w.getPlayers()) {
                     PlayerManager pms = PlayerManager.getPlayer(pls);
                     if (pms == null) {
-                        pms = new PlayerManager(pls);
+                        pms = new PlayerManager(deathMessages, pls);
                     }
                     if (e.getMessageType().equals(MessageType.PLAYER)) {
                         if (privatePlayer && (e.getPlayer().getUniqueId().equals(pms.getUUID())
@@ -80,14 +88,14 @@ public class BroadcastPlayerDeathListener implements Listener {
                     }
                 }
             }
-            PluginMessaging.sendPluginMSG(e.getPlayer(), ComponentSerializer.toString(e.getTextComponent()));
+            PluginMessagingUtils.sendMessage(deathMessages, fileStore, e.getPlayer(), ComponentSerializer.toString(e.getTextComponent()));
         }
     }
 
     private void normal(BroadcastDeathMessageEvent e, PlayerManager pms, Player pls, List<World> worlds) {
-        if (DeathMessages.worldGuardExtension != null) {
-            if (DeathMessages.worldGuardExtension.getRegionState(pls, e.getMessageType().getValue()).equals(StateFlag.State.DENY)
-                    || DeathMessages.worldGuardExtension.getRegionState(e.getPlayer(), e.getMessageType().getValue()).equals(StateFlag.State.DENY)) {
+        if (deathMessages.getWorldGuardExtension() != null) {
+            if (deathMessages.getWorldGuardExtension().getRegionState(pls, e.getMessageType().getValue()).equals(StateFlag.State.DENY)
+                    || deathMessages.getWorldGuardExtension().getRegionState(e.getPlayer(), e.getMessageType().getValue()).equals(StateFlag.State.DENY)) {
                 return;
             }
         }
@@ -95,8 +103,8 @@ public class BroadcastPlayerDeathListener implements Listener {
             if (pms.getMessagesEnabled()) {
                 pls.spigot().sendMessage(e.getTextComponent());
             }
-            if (config.getBoolean(Config.HOOKS_DISCORD_WORLD_WHITELIST_ENABLED)) {
-                List<String> discordWorldWhitelist = config.getStringList(Config.HOOKS_DISCORD_WORLD_WHITELIST_WORLDS);
+            if (fileStore.getConfig().getBoolean(Config.HOOKS_DISCORD_WORLD_WHITELIST_ENABLED)) {
+                List<String> discordWorldWhitelist = fileStore.getConfig().getStringList(Config.HOOKS_DISCORD_WORLD_WHITELIST_WORLDS);
                 boolean broadcastToDiscord = false;
                 for (World world : worlds) {
                     if (discordWorldWhitelist.contains(world.getName())) {
@@ -109,12 +117,12 @@ public class BroadcastPlayerDeathListener implements Listener {
                 }
                 //Will reach the discord broadcast
             }
-            if (DeathMessages.discordBotAPIExtension != null && !discordSent) {
-                DeathMessages.discordBotAPIExtension.sendDiscordMessage(PlayerManager.getPlayer(e.getPlayer()), e.getMessageType(), ChatColor.stripColor(e.getTextComponent().toLegacyText()));
+            if (deathMessages.getDiscordBotAPIExtension() != null && !discordSent) {
+                deathMessages.getDiscordBotAPIExtension().sendDiscordMessage(PlayerManager.getPlayer(e.getPlayer()), e.getMessageType(), ChatColor.stripColor(e.getTextComponent().toLegacyText()));
                 discordSent = true;
             }
-            if (DeathMessages.discordSRVExtension != null && !discordSent) {
-                DeathMessages.discordSRVExtension.sendDiscordMessage(PlayerManager.getPlayer(e.getPlayer()), e.getMessageType(), ChatColor.stripColor(e.getTextComponent().toLegacyText()));
+            if (deathMessages.getDiscordSRVExtension() != null && !discordSent) {
+                deathMessages.getDiscordSRVExtension().sendDiscordMessage(PlayerManager.getPlayer(e.getPlayer()), e.getMessageType(), ChatColor.stripColor(e.getTextComponent().toLegacyText()));
                 discordSent = true;
             }
         } catch (NullPointerException e1) {

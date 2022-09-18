@@ -33,7 +33,8 @@ public class CommandManager implements CommandExecutor {
         commands.add(new CommandBackup(configManager));
         commands.add(new CommandBlacklist(configManager.getUserDataConfig()));
         commands.add(new CommandDiscordLog(deathMessages));
-        commands.add(new CommandEdit());
+        commands.add(new CommandEdit(deathMessages.getConfigManager().getPlayerDeathMessagesConfig(),
+                deathMessages.getConfigManager().getEntityDeathMessagesConfig()));
         commands.add(new CommandReload(deathMessages.getConfigManager()));
         commands.add(new CommandRestore(deathMessages.getConfigManager()));
         commands.add(new CommandToggle());

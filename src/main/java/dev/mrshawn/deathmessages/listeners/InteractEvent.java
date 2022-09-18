@@ -1,5 +1,6 @@
 package dev.mrshawn.deathmessages.listeners;
 
+import dev.mrshawn.deathmessages.DeathMessages;
 import dev.mrshawn.deathmessages.api.EntityManager;
 import dev.mrshawn.deathmessages.api.ExplosionManager;
 import dev.mrshawn.deathmessages.api.PlayerManager;
@@ -23,6 +24,12 @@ import java.util.List;
 import java.util.UUID;
 
 public class InteractEvent implements Listener {
+
+    private DeathMessages deathMessages;
+
+    public InteractEvent(DeathMessages deathMessages) {
+        this.deathMessages = deathMessages;
+    }
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onInteract(PlayerInteractEvent e) {
@@ -54,7 +61,7 @@ public class InteractEvent implements Listener {
                     if (ent.getLocation().distanceSquared(b.getLocation()) < 100) {
                         EntityManager em;
                         if (EntityManager.getEntity(ent.getUniqueId()) == null) {
-                            em = new EntityManager(ent, ent.getUniqueId(), MobType.VANILLA);
+                            em = new EntityManager(deathMessages, ent, ent.getUniqueId(), MobType.VANILLA);
                         } else {
                             em = EntityManager.getEntity(ent.getUniqueId());
                         }
@@ -62,7 +69,7 @@ public class InteractEvent implements Listener {
                         em.setLastPlayerDamager(PlayerManager.getPlayer(e.getPlayer()));
                     }
                 }
-                new ExplosionManager(e.getPlayer().getUniqueId(), b.getType(), b.getLocation(), effected);
+                new ExplosionManager(deathMessages, e.getPlayer().getUniqueId(), b.getType(), b.getLocation(), effected);
                 DMBlockExplodeEvent explodeEvent = new DMBlockExplodeEvent(e.getPlayer(), b);
                 Bukkit.getPluginManager().callEvent(explodeEvent);
             }
@@ -88,7 +95,7 @@ public class InteractEvent implements Listener {
                     if (ent.getLocation().distanceSquared(b.getLocation()) < 100) {
                         EntityManager em;
                         if (EntityManager.getEntity(ent.getUniqueId()) == null) {
-                            em = new EntityManager(ent, ent.getUniqueId(), MobType.VANILLA);
+                            em = new EntityManager(deathMessages, ent, ent.getUniqueId(), MobType.VANILLA);
                         } else {
                             em = EntityManager.getEntity(ent.getUniqueId());
                         }
@@ -96,7 +103,7 @@ public class InteractEvent implements Listener {
                         em.setLastPlayerDamager(PlayerManager.getPlayer(e.getPlayer()));
                     }
                 }
-                new ExplosionManager(e.getPlayer().getUniqueId(), b.getType(), b.getLocation(), effected);
+                new ExplosionManager(deathMessages, e.getPlayer().getUniqueId(), b.getType(), b.getLocation(), effected);
                 DMBlockExplodeEvent explodeEvent = new DMBlockExplodeEvent(e.getPlayer(), b);
                 Bukkit.getPluginManager().callEvent(explodeEvent);
             }
