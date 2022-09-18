@@ -2,9 +2,16 @@ package dev.mrshawn.deathmessages.command.deathmessages;
 
 import dev.mrshawn.deathmessages.enums.Permission;
 import dev.mrshawn.deathmessages.utils.Assets;
+import optic_fusion1.deathmessages.config.ConfigManager;
 import org.bukkit.command.CommandSender;
 
 public class CommandBackup extends DeathMessagesCommand {
+
+    private ConfigManager configManager;
+
+    public CommandBackup(ConfigManager configManager) {
+        this.configManager = configManager;
+    }
 
     @Override
     public String command() {
@@ -21,7 +28,7 @@ public class CommandBackup extends DeathMessagesCommand {
             sender.sendMessage(Assets.formatMessage("Commands.DeathMessages.Sub-Commands.Backup.Usage"));
         } else {
             boolean b = Boolean.parseBoolean(args[0]);
-            String code = ConfigManager.getInstance().backup(b);
+            String code = configManager.backup(b);
             sender.sendMessage(Assets.formatMessage("Commands.DeathMessages.Sub-Commands.Backup.Backed-Up")
                     .replaceAll("%backup-code%", code));
         }

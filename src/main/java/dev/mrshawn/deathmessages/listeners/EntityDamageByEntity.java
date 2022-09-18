@@ -13,6 +13,7 @@ import org.bukkit.event.entity.EntityDamageEvent;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import optic_fusion1.deathmessages.config.ConfigFile;
 import org.bukkit.entity.EnderCrystal;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EvokerFangs;
@@ -25,7 +26,14 @@ import org.bukkit.entity.TNTPrimed;
 
 public class EntityDamageByEntity implements Listener {
 
-    public static Map<UUID, Entity> explosions = new HashMap<>();
+    private static Map<UUID, Entity> explosions = new HashMap<>();
+    private DeathMessages deathMessages;
+    private ConfigFile entityDeathMessagesConfig;
+
+    public EntityDamageByEntity(DeathMessages deathMessages, ConfigFile entityDeathMessagesConfig) {
+        this.deathMessages = deathMessages;
+        this.entityDeathMessagesConfig = entityDeathMessagesConfig;
+    }
 
     @EventHandler
     public void entityDamageByEntity(EntityDamageByEntityEvent e) {
@@ -71,14 +79,14 @@ public class EntityDamageByEntity implements Listener {
                 pm.setLastEntityDamager(evokerFangs.getOwner());
             }
         } else if (!(e.getEntity() instanceof Player) && e.getDamager() instanceof Player) {
-            if (EntityDeathMessages.getInstance().getConfig().getConfigurationSection("Entities") == null) {
+            if (entityDeathMessagesConfig.getConfig().getConfigurationSection("Entities") == null) {
                 return;
             }
-            Set<String> listenedMobs = EntityDeathMessages.getInstance().getConfig().getConfigurationSection("Entities")
+            Set<String> listenedMobs = entityDeathMessagesConfig.getConfig().getConfigurationSection("Entities")
                     .getKeys(false);
-            if (EntityDeathMessages.getInstance().getConfig().getConfigurationSection("Mythic-Mobs-Entities") != null
-                    && DeathMessages.getInstance().mythicmobsEnabled) {
-                listenedMobs.addAll(EntityDeathMessages.getInstance().getConfig().getConfigurationSection("Mythic-Mobs-Entities")
+            if (entityDeathMessagesConfig.getConfig().getConfigurationSection("Mythic-Mobs-Entities") != null
+                    && deathMessages.isMythicMobsEnabled()) {
+                listenedMobs.addAll(entityDeathMessagesConfig.getConfig().getConfigurationSection("Mythic-Mobs-Entities")
                         .getKeys(false));
             }
             if (listenedMobs.isEmpty()) {
@@ -86,12 +94,12 @@ public class EntityDamageByEntity implements Listener {
             }
             for (String listened : listenedMobs) {
                 if (listened.contains(e.getEntity().getType().getEntityClass().getSimpleName().toLowerCase())
-                        || (DeathMessages.getInstance().mythicmobsEnabled && DeathMessages.getInstance().mythicMobs.getAPIHelper().isMythicMob(e.getEntity().getUniqueId()))) {
+                        || (deathMessages.isMythicMobsEnabled() && deathMessages.getMythicMobs().getAPIHelper().isMythicMob(e.getEntity().getUniqueId()))) {
                     EntityManager em;
                     if (EntityManager.getEntity(e.getEntity().getUniqueId()) == null) {
                         MobType mobType = MobType.VANILLA;
-                        if (DeathMessages.getInstance().mythicmobsEnabled
-                                && DeathMessages.getInstance().mythicMobs.getAPIHelper().isMythicMob(e.getEntity().getUniqueId())) {
+                        if (deathMessages.isMythicMobsEnabled()
+                                && deathMessages.getMythicMobs().getAPIHelper().isMythicMob(e.getEntity().getUniqueId())) {
                             mobType = MobType.MYTHIC_MOB;
                         }
                         em = new EntityManager(e.getEntity(), e.getEntity().getUniqueId(), mobType);

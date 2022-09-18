@@ -120,8 +120,8 @@ public class EntityDeath implements Listener {
         } else {
             //Player killing mob
             MobType mobType = MobType.VANILLA;
-            if (deathMessages.mythicmobsEnabled) {
-                if (deathMessages.mythicMobs.getAPIHelper().isMythicMob(e.getEntity().getUniqueId())) {
+            if (deathMessages.isMythicMobsEnabled()) {
+                if (deathMessages.getMythicMobs().getAPIHelper().isMythicMob(e.getEntity().getUniqueId())) {
                     mobType = MobType.MYTHIC_MOB;
                 }
             }

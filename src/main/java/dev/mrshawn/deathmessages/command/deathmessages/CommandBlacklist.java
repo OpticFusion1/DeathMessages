@@ -7,8 +7,15 @@ import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import java.util.Map;
 import java.util.UUID;
+import optic_fusion1.deathmessages.config.ConfigFile;
 
 public class CommandBlacklist extends DeathMessagesCommand {
+
+    private ConfigFile userData;
+
+    public CommandBlacklist(ConfigFile userData) {
+        this.userData = userData;
+    }
 
     @Override
     public String command() {
@@ -24,10 +31,10 @@ public class CommandBlacklist extends DeathMessagesCommand {
         if (args.length == 0) {
             sender.sendMessage(Assets.formatMessage("Commands.DeathMessages.Sub-Commands.Blacklist.Help"));
         } else {
-            for (Map.Entry<String, Object> entry : UserData.getInstance().getConfig().getValues(false).entrySet()) {
-                String username = UserData.getInstance().getConfig().getString(entry.getKey() + ".username");
+            for (Map.Entry<String, Object> entry : userData.getConfig().getValues(false).entrySet()) {
+                String username = userData.getConfig().getString(entry.getKey() + ".username");
                 if (username.equalsIgnoreCase(args[0])) {
-                    boolean blacklisted = UserData.getInstance().getConfig().getBoolean(entry.getKey() + ".is-blacklisted");
+                    boolean blacklisted = userData.getConfig().getBoolean(entry.getKey() + ".is-blacklisted");
                     if (blacklisted) {
                         if (Bukkit.getPlayer(UUID.fromString(entry.getKey())) != null) {
                             PlayerManager pm = PlayerManager.getPlayer(UUID.fromString(entry.getKey()));
@@ -35,8 +42,8 @@ public class CommandBlacklist extends DeathMessagesCommand {
                                 pm.setBlacklisted(false);
                             }
                         }
-                        UserData.getInstance().getConfig().set(entry.getKey() + ".is-blacklisted", false);
-                        UserData.getInstance().save();
+                        userData.getConfig().set(entry.getKey() + ".is-blacklisted", false);
+                        userData.save();
                         sender.sendMessage(Assets.formatMessage("Commands.DeathMessages.Sub-Commands.Blacklist.Blacklist-Remove")
                                 .replaceAll("%player%", args[0]));
                     } else {
@@ -46,8 +53,8 @@ public class CommandBlacklist extends DeathMessagesCommand {
                                 pm.setBlacklisted(true);
                             }
                         }
-                        UserData.getInstance().getConfig().set(entry.getKey() + ".is-blacklisted", true);
-                        UserData.getInstance().save();
+                        userData.getConfig().set(entry.getKey() + ".is-blacklisted", true);
+                        userData.save();
                         sender.sendMessage(Assets.formatMessage("Commands.DeathMessages.Sub-Commands.Blacklist.Blacklist-Add")
                                 .replaceAll("%player%", args[0]));
                     }

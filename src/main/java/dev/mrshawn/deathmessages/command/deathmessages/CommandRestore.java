@@ -7,6 +7,12 @@ import org.bukkit.command.CommandSender;
 
 public class CommandRestore extends DeathMessagesCommand {
 
+    private ConfigManager configManager;
+
+    public CommandRestore(ConfigManager configManager) {
+        this.configManager = configManager;
+    }
+
     @Override
     public String command() {
         return "restore";
@@ -23,7 +29,7 @@ public class CommandRestore extends DeathMessagesCommand {
         } else {
             String code = args[0];
             boolean excludeUserData = Boolean.parseBoolean(args[1]);
-            if (ConfigManager.getInstance().restore(code, excludeUserData)) {
+            if (configManager.restore(code, excludeUserData)) {
                 sender.sendMessage(Assets.formatMessage("Commands.DeathMessages.Sub-Commands.Restore.Restored")
                         .replaceAll("%backup-code%", code));
             } else {

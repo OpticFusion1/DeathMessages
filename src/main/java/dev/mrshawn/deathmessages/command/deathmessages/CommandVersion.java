@@ -7,6 +7,12 @@ import org.bukkit.command.CommandSender;
 
 public class CommandVersion extends DeathMessagesCommand {
 
+    private DeathMessages deathMessages;
+
+    public CommandVersion(DeathMessages deathMessages) {
+        this.deathMessages = deathMessages;
+    }
+
     @Override
     public String command() {
         return "version";
@@ -19,7 +25,7 @@ public class CommandVersion extends DeathMessagesCommand {
             return;
         }
         String message = Assets.formatMessage("Commands.DeathMessages.Sub-Commands.Version");
-        message = message.replaceAll("%version%", DeathMessages.getInstance().getDescription().getVersion());
+        message = message.replaceAll("%version%", deathMessages.getDescription().getVersion());
         sender.sendMessage(message);
     }
 }

@@ -6,7 +6,6 @@ import dev.mrshawn.deathmessages.api.events.BroadcastEntityDeathMessageEvent;
 import dev.mrshawn.deathmessages.enums.MessageType;
 import dev.mrshawn.deathmessages.enums.MobType;
 import dev.mrshawn.deathmessages.files.Config;
-import dev.mrshawn.deathmessages.files.FileSettings;
 import dev.mrshawn.deathmessages.utils.Assets;
 import io.lumine.mythic.bukkit.events.MythicMobDeathEvent;
 import net.md_5.bungee.api.chat.TextComponent;
@@ -18,10 +17,18 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import java.util.ArrayList;
 import java.util.List;
+import optic_fusion1.deathmessages.config.ConfigFile;
+import optic_fusion1.deathmessages.util.FileStore;
 
 public class MobDeath implements Listener {
 
-    private static final FileSettings<Config> config = FileStore.INSTANCE.getCONFIG();
+    private ConfigFile settingsConfigFile;
+    private FileStore fileStore;
+
+    public MobDeath(FileStore fileStore, ConfigFile settingsConfigFile) {
+        this.fileStore = fileStore;
+        this.settingsConfigFile = settingsConfigFile;
+    }
 
     @EventHandler
     public void onMythicMobDeath(MythicMobDeathEvent e) {
@@ -47,14 +54,15 @@ public class MobDeath implements Listener {
         }
     }
 
-    public static List<World> getWorlds(Entity e) {
+    // TODO: Move this to Utils
+    public List<World> getWorlds(Entity e) {
         List<World> broadcastWorlds = new ArrayList<>();
-        if (config.getStringList(Config.DISABLED_WORLDS).contains(e.getWorld().getName())) {
+        if (fileStore.getConfig().getStringList(Config.DISABLED_WORLDS).contains(e.getWorld().getName())) {
             return broadcastWorlds;
         }
-        if (config.getBoolean(Config.PER_WORLD_MESSAGES)) {
-            for (String groups : Settings.getInstance().getConfig().getConfigurationSection("World-Groups").getKeys(false)) {
-                List<String> worlds = Settings.getInstance().getConfig().getStringList("World-Groups." + groups);
+        if (fileStore.getConfig().getBoolean(Config.PER_WORLD_MESSAGES)) {
+            for (String groups : settingsConfigFile.getConfig().getConfigurationSection("World-Groups").getKeys(false)) {
+                List<String> worlds = settingsConfigFile.getConfig().getStringList("World-Groups." + groups);
                 if (worlds.contains(e.getWorld().getName())) {
                     for (String single : worlds) {
                         broadcastWorlds.add(Bukkit.getWorld(single));

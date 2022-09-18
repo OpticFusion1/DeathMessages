@@ -46,21 +46,21 @@ public class DeathMessages extends JavaPlugin {
     private static final PluginManager PLUGIN_MANAGER = Bukkit.getPluginManager();
     private static DeathMessages instance;
 
-    public boolean placeholderAPIEnabled = false;
-    public boolean combatLogXAPIEnabled = false;
+    private boolean placeholderAPIEnabled = false;
+    private boolean combatLogXAPIEnabled = false;
 
-    public MythicBukkit mythicMobs = null;
-    public boolean mythicmobsEnabled = false;
+    private MythicBukkit mythicMobs = null;
+    private boolean mythicMobsEnabled = false;
 
-    public String bungeeServerName;
-    public boolean bungeeServerNameRequest = true;
-    public boolean bungeeInit = false;
+    private String bungeeServerName;
+    private boolean bungeeServerNameRequest = true;
+    private boolean bungeeInit = false;
 
-    public WorldGuardExtension worldGuardExtension;
-    public boolean worldGuardEnabled;
+    private WorldGuardExtension worldGuardExtension;
+    private boolean worldGuardEnabled;
 
-    public DiscordBotAPIExtension discordBotAPIExtension;
-    public DiscordSRVExtension discordSRVExtension;
+    private DiscordBotAPIExtension discordBotAPIExtension;
+    private DiscordSRVExtension discordSRVExtension;
 
     private EventPriority eventPriority = EventPriority.HIGH;
 
@@ -92,14 +92,15 @@ public class DeathMessages extends JavaPlugin {
         configManager = new ConfigManager(this);
         configManager.initialize();
         fileStore = new FileStore(this);
-//        DeathMessages.eventPriority = EventPriority.valueOf(
-//                config.getString(Config.DEATH_LISTENER_PRIORITY).toUpperCase()
-//        );
+        DeathMessages.eventPriority = EventPriority.valueOf(
+                configManager.getString(Config.DEATH_LISTENER_PRIORITY).toUpperCase()
+        );
     }
 
     private void initializeListeners() {
         registerListeners(new BroadcastPlayerDeathListener(), new BroadcastEntityDeathListener(configManager.getMessagesConfig(), fileStore),
-                new BlockExplosion(), new EntityDamage(), new EntityDamageByBlock(), new EntityDamageByEntity(),
+                new BlockExplosion(), new EntityDamage(this), new EntityDamageByBlock(),
+                new EntityDamageByEntity(this, configManager.getEntityDeathMessagesConfig()),
                 new EntityDeath(this), new InteractEvent(), new OnJoin(this), new OnMove(), new PlayerDeath(fileStore),
                 new OnChatListener(configManager.getPlayerDeathMessagesConfig(), configManager.getEntityDeathMessagesConfig()));
     }
@@ -111,11 +112,11 @@ public class DeathMessages extends JavaPlugin {
     }
 
     private void initializeCommands() {
-        CommandManager cm = new CommandManager();
+        CommandManager cm = new CommandManager(this, configManager);
         cm.initializeSubCommands();
         getCommand("deathmessages").setExecutor(cm);
         getCommand("deathmessages").setTabCompleter(new TabCompleter());
-        getCommand("deathmessagestoggle").setExecutor(new CommandDeathMessagesToggle());
+        getCommand("deathmessagestoggle").setExecutor(new CommandDeathMessagesToggle(configManager.getUserDataConfig()));
     }
 
     private void initializeHooks() {
@@ -160,9 +161,9 @@ public class DeathMessages extends JavaPlugin {
 //        }
         if (Bukkit.getPluginManager().getPlugin("MythicMobs") != null && fileStore.getConfig().getBoolean(Config.HOOKS_MYTHICMOBS_ENABLED)) {
             mythicMobs = MythicBukkit.inst();
-            mythicmobsEnabled = true;
+            mythicMobsEnabled = true;
             getLogger().info("MythicMobs Hook Enabled!");
-            Bukkit.getPluginManager().registerEvents(new MobDeath(), this);
+            Bukkit.getPluginManager().registerEvents(new MobDeath(fileStore, configManager.getSettingsConfig()), this);
         }
 
         if (fileStore.getConfig().getBoolean(Config.HOOKS_BUNGEE_ENABLED)) {
@@ -251,6 +252,38 @@ public class DeathMessages extends JavaPlugin {
 
     public void setBungeeServerName(String serverName) {
         this.bungeeServerName = serverName;
+    }
+
+    public boolean isPlaceholderAPIEnabled() {
+        return placeholderAPIEnabled;
+    }
+
+    public boolean isCombatLogXAPIEnabled() {
+        return combatLogXAPIEnabled;
+    }
+
+    public MythicBukkit getMythicMobs() {
+        return mythicMobs;
+    }
+
+    public boolean isMythicMobsEnabled() {
+        return mythicMobsEnabled;
+    }
+
+    public WorldGuardExtension getWorldGuardExtension() {
+        return worldGuardExtension;
+    }
+
+    public boolean isWorldGuardEnabled() {
+        return worldGuardEnabled;
+    }
+
+    public DiscordBotAPIExtension getDiscordBotAPIExtension() {
+        return discordBotAPIExtension;
+    }
+
+    public DiscordSRVExtension getDiscordSRVExtension() {
+        return discordSRVExtension;
     }
 
 }

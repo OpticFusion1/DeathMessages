@@ -7,6 +7,12 @@ import org.bukkit.command.CommandSender;
 
 public class CommandReload extends DeathMessagesCommand {
 
+    private ConfigManager configManager;
+
+    public CommandReload(ConfigManager configManager) {
+        this.configManager = configManager;
+    }
+
     @Override
     public String command() {
         return "reload";
@@ -18,7 +24,7 @@ public class CommandReload extends DeathMessagesCommand {
             sender.sendMessage(Assets.formatMessage("Commands.DeathMessages.No-Permission"));
             return;
         }
-        ConfigManager.getInstance().reload();
+        configManager.reload();
         sender.sendMessage(Assets.formatMessage("Commands.DeathMessages.Sub-Commands.Reload.Reloaded"));
     }
 }

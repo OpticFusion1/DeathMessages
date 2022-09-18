@@ -1,5 +1,7 @@
 package dev.mrshawn.deathmessages.command.deathmessages;
 
+import dev.mrshawn.deathMessages.command.deathmessages.CommandDiscordLog;
+import dev.mrshawn.deathmessages.DeathMessages;
 import dev.mrshawn.deathmessages.enums.Permission;
 import dev.mrshawn.deathmessages.utils.Assets;
 import org.bukkit.command.Command;
@@ -10,20 +12,32 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import me.joshb.discordbotapi.bungee.config.Messages;
+import optic_fusion1.deathmessages.config.ConfigFile;
+import optic_fusion1.deathmessages.config.ConfigManager;
 
 public class CommandManager implements CommandExecutor {
 
     private final List<DeathMessagesCommand> commands = new ArrayList<>();
+    private DeathMessages deathMessages;
+    private ConfigManager configManager;
+    private ConfigFile messagesConfigFile;
+
+    public CommandManager(DeathMessages deathMessages, ConfigManager configManager) {
+        this.deathMessages = deathMessages;
+        this.configManager = configManager;
+        messagesConfigFile = configManager.getMessagesConfig();
+    }
 
     public void initializeSubCommands() {
-        commands.add(new CommandBackup());
-        commands.add(new CommandBlacklist());
-        commands.add(new CommandDiscordLog());
+        commands.add(new CommandBackup(configManager));
+        commands.add(new CommandBlacklist(configManager.getUserDataConfig()));
+        commands.add(new CommandDiscordLog(deathMessages));
         commands.add(new CommandEdit());
-        commands.add(new CommandReload());
-        commands.add(new CommandRestore());
+        commands.add(new CommandReload(deathMessages.getConfigManager()));
+        commands.add(new CommandRestore(deathMessages.getConfigManager()));
         commands.add(new CommandToggle());
-        commands.add(new CommandVersion());
+        commands.add(new CommandVersion(deathMessages));
     }
 
     @Override
@@ -45,7 +59,7 @@ public class CommandManager implements CommandExecutor {
                 cmd.onCommand(sender, args);
                 return false;
             }
-            for (String s : Assets.formatMessage(Messages.getInstance().getConfig().getStringList("Commands.DeathMessages.Help"))) {
+            for (String s : Assets.formatMessage(messagesConfigFile.getConfig().getStringList("Commands.DeathMessages.Help"))) {
                 sender.sendMessage(s);
             }
         }

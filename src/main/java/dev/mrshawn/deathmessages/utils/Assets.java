@@ -88,18 +88,6 @@ public class Assets {
         return newList;
     }
 
-    public static boolean isClimbable(Block block) {
-        return isClimbable(block.getType());
-    }
-
-    public static boolean isClimbable(Material material) {
-        final String name = material.name();
-        return name.contains("LADDER")
-                || name.contains("VINE")
-                || name.contains("SCAFFOLDING")
-                || name.contains("TRAPDOOR");
-    }
-
     public static boolean itemNameIsWeapon(ItemStack itemStack) {
         if (itemStack == null || !itemStack.hasItemMeta() || !itemStack.getItemMeta().hasDisplayName()) {
             return false;
@@ -131,23 +119,7 @@ public class Assets {
         }
         return false;
     }
-
-    public static boolean isWeapon(ItemStack itemStack) {
-        return isWeapon(itemStack.getType())
-                && !itemNameIsWeapon(itemStack)
-                && !itemMaterialIsWeapon(itemStack);
-    }
-
-    public static boolean isWeapon(Material material) {
-        String materialName = material.toString();
-        return !materialName.contains("SHOVEL")
-                && !materialName.contains("PICKAXE")
-                && !materialName.contains("AXE")
-                && !materialName.contains("HOE")
-                && !materialName.contains("SWORD")
-                && !materialName.contains("BOW");
-    }
-
+    
     public static boolean hasWeapon(LivingEntity mob, EntityDamageEvent.DamageCause damageCause) {
         if (DeathMessages.majorVersion() < 9) {
             if (mob.getEquipment() == null) {
