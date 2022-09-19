@@ -10,7 +10,7 @@ import dev.mrshawn.deathmessages.enums.MobType;
 import dev.mrshawn.deathmessages.enums.PDMode;
 import dev.mrshawn.deathmessages.files.Config;
 import dev.mrshawn.deathmessages.files.FileSettings;
-import java.nio.file.FileStore;
+import static github.scarsz.discordsrv.DiscordSRV.config;
 import me.clip.placeholderapi.PlaceholderAPI;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.BaseComponent;
@@ -23,14 +23,14 @@ import org.bukkit.World;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.inventory.ItemStack;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import me.joshb.discordbotapi.bungee.config.Messages;
+import optic_fusion1.deathmessages.config.ConfigFile;
 import optic_fusion1.deathmessages.util.Colorize;
 import static optic_fusion1.deathmessages.util.Colorize.colorize;
+import optic_fusion1.deathmessages.util.FileStore;
 import optic_fusion1.deathmessages.util.Utils;
 import static optic_fusion1.deathmessages.util.Utils.formatting;
 import static optic_fusion1.deathmessages.util.Utils.getColorOfString;
@@ -49,31 +49,30 @@ import org.bukkit.entity.Tameable;
 
 public class Assets {
 
-    private static final FileSettings<Config> config = FileStore.INSTANCE.getCONFIG();
+//    private static final FileSettings<Config> config = FileStore.INSTANCE.getCONFIG();
+//
+//    private static final boolean addPrefix = fileStore.getConfig().(Config.ADD_PREFIX_TO_ALL_MESSAGES);
+//
+//    public static HashMap<String, String> addingMessage = new HashMap<>();
 
-    private static final boolean addPrefix = config.getBoolean(Config.ADD_PREFIX_TO_ALL_MESSAGES);
-
-    public static HashMap<String, String> addingMessage = new HashMap<>();
-
-    public static String formatMessage(String path) {
-        return colorize(Messages.getInstance().getConfig().getString(path)
-                .replaceAll("%prefix%", Messages.getInstance().getConfig().getString("Prefix")));
+    public static String formatMessage(ConfigFile messagesConfigFile, String path) {
+        return colorize(messagesConfigFile.getConfig().getString(path)
+                .replaceAll("%prefix%", messagesConfigFile.getConfig().getString("Prefix")));
     }
 
-    public static String formatString(String string) {
-        return colorize(string
-                .replaceAll("%prefix%", Messages.getInstance().getConfig().getString("Prefix")));
+    public static String formatString(ConfigFile messagesConfigFile, String string) {
+        return colorize(string.replaceAll("%prefix%", messagesConfigFile.getConfig().getString("Prefix")));
     }
 
-    public static List<String> formatMessage(List<String> list) {
+    public static List<String> formatMessage(ConfigFile messagesConfigFile, List<String> list) {
         List<String> newList = new ArrayList<>();
         for (String s : list) {
-            newList.add(colorize(s.replaceAll("%prefix%", Messages.getInstance().getConfig().getString("Prefix"))));
+            newList.add(colorize(s.replaceAll("%prefix%", messagesConfigFile.getConfig().getString("Prefix"))));
         }
         return newList;
     }
 
-    public static boolean itemNameIsWeapon(ItemStack itemStack) {
+    public static boolean itemNameIsWeapon(FileSettings<Config> config, ItemStack itemStack) {
         if (itemStack == null || !itemStack.hasItemMeta() || !itemStack.getItemMeta().hasDisplayName()) {
             return false;
         }
@@ -89,7 +88,7 @@ public class Assets {
         return false;
     }
 
-    public static boolean itemMaterialIsWeapon(ItemStack itemStack) {
+    public static boolean itemMaterialIsWeapon(FileSettings<Config> config, ItemStack itemStack) {
         if (itemStack == null) {
             return false;
         }
@@ -164,20 +163,20 @@ public class Assets {
         }
     }
 
-    public static TextComponent entityDeathMessage(EntityManager em, MobType mobType) {
+    public static TextComponent entityDeathMessage(DeathMessages deathMessages, EntityManager em, MobType mobType) {
         PlayerManager pm = em.getLastPlayerDamager();
         Player p = pm.getPlayer();
         boolean hasWeapon = hasWeapon(p, pm.getLastDamage());
 
         if (em.getLastDamage() == EntityDamageEvent.DamageCause.ENTITY_EXPLOSION) {
             if (em.getLastExplosiveEntity() instanceof EnderCrystal) {
-                return getEntityDeath(p, em.getEntity(), "End-Crystal", mobType);
+                return getEntityDeath(deathMessages, p, em.getEntity(), "End-Crystal", mobType);
             } else if (em.getLastExplosiveEntity() instanceof TNTPrimed) {
-                return getEntityDeath(p, em.getEntity(), "TNT", mobType);
+                return getEntityDeath(deathMessages, p, em.getEntity(), "TNT", mobType);
             } else if (em.getLastExplosiveEntity() instanceof Firework) {
-                return getEntityDeath(p, em.getEntity(), "Firework", mobType);
+                return getEntityDeath(deathMessages, p, em.getEntity(), "Firework", mobType);
             } else {
-                return getEntityDeath(p, em.getEntity(), getSimpleCause(EntityDamageEvent.DamageCause.ENTITY_EXPLOSION), mobType);
+                return getEntityDeath(deathMessages, p, em.getEntity(), getSimpleCause(EntityDamageEvent.DamageCause.ENTITY_EXPLOSION), mobType);
             }
         }
         if (em.getLastDamage() == EntityDamageEvent.DamageCause.BLOCK_EXPLOSION) {
@@ -185,45 +184,45 @@ public class Assets {
             ExplosionManager explosionManager = ExplosionManager.getManagerIfEffected(em.getEntityUUID());
             if (explosionManager.getMaterial().name().contains("BED")) {
                 PlayerManager pyro = PlayerManager.getPlayer(explosionManager.getPyro());
-                return getEntityDeath(pyro.getPlayer(), em.getEntity(), "Bed", mobType);
+                return getEntityDeath(deathMessages, pyro.getPlayer(), em.getEntity(), "Bed", mobType);
             }
             //Respawn Anchor kill
             if (explosionManager.getMaterial() == Material.RESPAWN_ANCHOR) {
                 PlayerManager pyro = PlayerManager.getPlayer(explosionManager.getPyro());
-                return getEntityDeath(pyro.getPlayer(), em.getEntity(), "Respawn-Anchor", mobType);
+                return getEntityDeath(deathMessages, pyro.getPlayer(), em.getEntity(), "Respawn-Anchor", mobType);
             }
         }
         if (hasWeapon) {
             if (em.getLastDamage() == EntityDamageEvent.DamageCause.ENTITY_ATTACK) {
                 return getEntityDeathWeapon(p, em.getEntity(), mobType);
             } else if (em.getLastDamage() == EntityDamageEvent.DamageCause.PROJECTILE && em.getLastProjectileEntity() instanceof Arrow) {
-                return getEntityDeathProjectile(p, em, getSimpleProjectile(em.getLastProjectileEntity()), mobType);
+                return getEntityDeathProjectile(deathMessages, p, em, getSimpleProjectile(em.getLastProjectileEntity()), mobType);
             } else {
                 return getEntityDeathWeapon(p, em.getEntity(), mobType);
             }
         } else {
             for (EntityDamageEvent.DamageCause dc : EntityDamageEvent.DamageCause.values()) {
                 if (em.getLastDamage() == EntityDamageEvent.DamageCause.PROJECTILE) {
-                    return getEntityDeathProjectile(p, em, getSimpleProjectile(em.getLastProjectileEntity()), mobType);
+                    return getEntityDeathProjectile(deathMessages, p, em, getSimpleProjectile(em.getLastProjectileEntity()), mobType);
                 }
                 if (em.getLastDamage().equals(dc)) {
-                    return getEntityDeath(p, em.getEntity(), getSimpleCause(dc), mobType);
+                    return getEntityDeath(deathMessages, p, em.getEntity(), getSimpleCause(dc), mobType);
                 }
             }
             return null;
         }
     }
 
-    public static TextComponent getNaturalDeath(PlayerManager pm, String damageCause) {
+    public static TextComponent getNaturalDeath(DeathMessages deathMessages, PlayerManager pm, String damageCause) {
         Random random = new Random();
-        List<String> msgs = sortList(getPlayerDeathMessages().getStringList("Natural-Cause." + damageCause), pm.getPlayer(), pm.getPlayer());
+        List<String> msgs = sortList(deathMessages, getPlayerDeathMessages().getStringList("Natural-Cause." + damageCause), pm.getPlayer(), pm.getPlayer());
         if (msgs.isEmpty()) {
             return null;
         }
         String msg = msgs.get(random.nextInt(msgs.size()));
         TextComponent tc = new TextComponent("");
         if (addPrefix) {
-            TextComponent tx = new TextComponent(TextComponent.fromLegacyText(Colorize.colorize(Messages.getInstance().getConfig().getString("Prefix"))));
+            TextComponent tx = new TextComponent(TextComponent.fromLegacyText(Colorize.colorize(messagesConfigFile.getConfig().getString("Prefix"))));
             tc.addExtra(tx);
         }
         String[] sec = msg.split("::");
@@ -245,13 +244,13 @@ public class Assets {
                 try {
                     FallingBlock fb = (FallingBlock) pm.getLastEntityDamager();
                     String material = fb.getBlockData().getMaterial().toString().toLowerCase();
-                    String configValue = Messages.getInstance().getConfig().getString("Blocks." + material);
+                    String configValue = messagesConfigFile.getConfig().getString("Blocks." + material);
                     String mssa = Colorize.colorize(splitMessage.replaceAll("%block%", configValue
                             + (splitMessage.endsWith(".") ? "" : " ")));
                     tc.addExtra(mssa);
                     lastColor = getColorOfString(lastColor + mssa);
                 } catch (NullPointerException e) {
-                    DeathMessages.getInstance().getLogger().severe("Could not parse %block%. Please check your config for a wrong value."
+                    deathMessages.getLogger().severe("Could not parse %block%. Please check your config for a wrong value."
                             + " Your materials could be spelt wrong or it does not exists in the config. If this problem persist, contact support"
                             + " on the discord https://discord.gg/dhJnq7R");
                     pm.setLastEntityDamager(null);
@@ -261,12 +260,12 @@ public class Assets {
             } else if (splitMessage.contains("%climbable%") && pm.getLastDamage().equals(EntityDamageEvent.DamageCause.FALL)) {
                 try {
                     String material = pm.getLastClimbing().toString().toLowerCase();
-                    String configValue = Messages.getInstance().getConfig().getString("Blocks." + material);
+                    String configValue = messagesConfigFile.getConfig().getString("Blocks." + material);
                     String mssa = Colorize.colorize(splitMessage.replaceAll("%climbable%", configValue + (splitMessage.endsWith(".") ? "" : " ")));
                     tc.addExtra(mssa);
                     lastColor = getColorOfString(lastColor + mssa);
                 } catch (NullPointerException e) {
-                    DeathMessages.getInstance().getLogger().severe("Could not parse %climbable%. Please check your config for a wrong value."
+                    deathMessages.getLogger().severe("Could not parse %climbable%. Please check your config for a wrong value."
                             + " Your materials could be spelt wrong or it does not exists in the config. If this problem persist, contact support"
                             + " on the discord https://discord.gg/dhJnq7R - Parsed block: " + pm.getLastClimbing().toString());
                     pm.setLastClimbing(null);
@@ -280,8 +279,8 @@ public class Assets {
                 }
                 String displayName;
                 if (!(i.getItemMeta() == null) && !i.getItemMeta().hasDisplayName() || i.getItemMeta().getDisplayName().equals("")) {
-                    if (config.getBoolean(Config.DISABLE_WEAPON_KILL_WITH_NO_CUSTOM_NAME_ENABLED)) {
-                        if (!config.getBoolean(Config.DISABLE_WEAPON_KILL_WITH_NO_CUSTOM_NAME_IGNORE_ENCHANTMENTS)) {
+                    if (fileStore.getConfig().(Config.DISABLE_WEAPON_KILL_WITH_NO_CUSTOM_NAME_ENABLED)) {
+                        if (!fileStore.getConfig().(Config.DISABLE_WEAPON_KILL_WITH_NO_CUSTOM_NAME_IGNORE_ENCHANTMENTS)) {
                             if (i.getEnchantments().size() == 0) {
                                 return getNaturalDeath(pm, "Projectile-Unknown");
                             }
@@ -336,17 +335,17 @@ public class Assets {
     public static TextComponent getWeapon(boolean gang, PlayerManager pm, LivingEntity mob) {
         Random random = new Random();
 
-        final boolean basicMode = PlayerDeathMessages.getInstance().getConfig().getBoolean("Basic-Mode.Enabled");
-        final String cMode = basicMode ? PDMode.BASIC_MODE.getValue() : PDMode.MOBS.getValue()
-                + "." + mob.getType().getEntityClass().getSimpleName().toLowerCase();
-        final String affiliation = gang ? DeathAffiliation.GANG.getValue() : DeathAffiliation.SOLO.getValue();
+        boolean basicMode = PlayerdeathMessages.getInstance().getConfig().getBoolean("Basic-Mode.Enabled");
+        String cMode = basicMode ? PDMode.BASIC_MODE.getValue() : PDMode.MOBS.getValue() + "."
+                + mob.getType().getEntityClass().getSimpleName().toLowerCase();
+        String affiliation = gang ? DeathAffiliation.GANG.getValue() : DeathAffiliation.SOLO.getValue();
         //List<String> msgs = sortList(getPlayerDeathMessages().getStringList(cMode + "." + affiliation + ".Weapon"), pm.getPlayer());
 
-        //Bukkit.broadcastMessage(DeathMessages.getInstance().mythicmobsEnabled + " - " + DeathMessages.getInstance().mythicMobs.getAPIHelper().isMythicMob(mob.getUniqueId()));
+        //Bukkit.broadcastMessage(deathMessages.isMythicMobsEnabled() + " - " + deathMessages.getMythicMobs().getAPIHelper().isMythicMob(mob.getUniqueId()));
         List<String> msgs;
-        if (DeathMessages.getInstance().mythicmobsEnabled
-                && DeathMessages.getInstance().mythicMobs.getAPIHelper().isMythicMob(mob.getUniqueId())) {
-            String internalMobType = DeathMessages.getInstance().mythicMobs.getAPIHelper().getMythicMobInstance(mob).getMobType();
+        if (deathMessages.isMythicMobsEnabled()
+                && deathMessages.getMythicMobs().getAPIHelper().isMythicMob(mob.getUniqueId())) {
+            String internalMobType = deathMessages.getMythicMobs().getAPIHelper().getMythicMobInstance(mob).getMobType();
             //Bukkit.broadcastMessage("is myth - " + internalMobType);
             msgs = sortList(getPlayerDeathMessages().getStringList("Custom-Mobs.Mythic-Mobs." + internalMobType + "." + affiliation + ".Weapon"), pm.getPlayer(), mob);
         } else {
@@ -359,7 +358,7 @@ public class Assets {
         String msg = msgs.get(random.nextInt(msgs.size()));
         TextComponent tc = new TextComponent("");
         if (addPrefix) {
-            TextComponent tx = new TextComponent(TextComponent.fromLegacyText(Colorize.colorize(Messages.getInstance().getConfig().getString("Prefix"))));
+            TextComponent tx = new TextComponent(TextComponent.fromLegacyText(Colorize.colorize(messagesConfigFile.getConfig().getString("Prefix"))));
             tc.addExtra(tx);
         }
         String[] sec = msg.split("::");
@@ -441,15 +440,15 @@ public class Assets {
         List<String> msgs;
         if (mobType.equals(MobType.MYTHIC_MOB)) {
             String internalMobType = null;
-            if (DeathMessages.getInstance().mythicmobsEnabled
-                    && DeathMessages.getInstance().mythicMobs.getAPIHelper().isMythicMob(e.getUniqueId())) {
-                internalMobType = DeathMessages.getInstance().mythicMobs.getAPIHelper().getMythicMobInstance(e).getMobType();
+            if (deathMessages.isMythicMobsEnabled()
+                    && deathMessages.getMythicMobs().getAPIHelper().isMythicMob(e.getUniqueId())) {
+                internalMobType = deathMessages.getMythicMobs().getAPIHelper().getMythicMobInstance(e).getMobType();
             } else {
                 //reserved
             }
-            msgs = sortList(getEntityDeathMessages().getStringList("Mythic-Mobs-Entities." + internalMobType + ".Weapon"), p, e);
+            msgs = sortList(deathMessages, entityDeathMessages.getConfig().getStringList("Mythic-Mobs-Entities." + internalMobType + ".Weapon"), p, e);
         } else {
-            msgs = sortList(getEntityDeathMessages().getStringList("Entities." + entityName + ".Weapon"), p, e);
+            msgs = sortList(deathMessages, entityDeathMessages.getConfig().getStringList("Entities." + entityName + ".Weapon"), p, e);
         }
 
         if (msgs.isEmpty()) {
@@ -465,7 +464,7 @@ public class Assets {
         String msg = msgs.get(random.nextInt(msgs.size()));
         TextComponent tc = new TextComponent("");
         if (addPrefix) {
-            TextComponent tx = new TextComponent(TextComponent.fromLegacyText(Colorize.colorize(Messages.getInstance().getConfig().getString("Prefix"))));
+            TextComponent tx = new TextComponent(TextComponent.fromLegacyText(Colorize.colorize(messagesConfigFile.getConfig().getString("Prefix"))));
             tc.addExtra(tx);
         }
         String[] sec = msg.split("::");
@@ -487,14 +486,14 @@ public class Assets {
                 i = p.getEquipment().getItemInMainHand();
                 String displayName;
                 if (!(i.getItemMeta() == null) && !i.getItemMeta().hasDisplayName() || i.getItemMeta().getDisplayName().equals("")) {
-                    if (config.getBoolean(Config.DISABLE_WEAPON_KILL_WITH_NO_CUSTOM_NAME_ENABLED)) {
-                        if (!config.getBoolean(Config.DISABLE_WEAPON_KILL_WITH_NO_CUSTOM_NAME_IGNORE_ENCHANTMENTS)) {
+                    if (fileStore.getConfig().(Config.DISABLE_WEAPON_KILL_WITH_NO_CUSTOM_NAME_ENABLED)) {
+                        if (!fileStore.getConfig().(Config.DISABLE_WEAPON_KILL_WITH_NO_CUSTOM_NAME_IGNORE_ENCHANTMENTS)) {
                             if (i.getEnchantments().size() == 0) {
-                                return getEntityDeath(p, e,
+                                return getEntityDeath(deathMessages, p, e,
                                         config.getString(Config.DISABLE_WEAPON_KILL_WITH_NO_CUSTOM_NAME_SOURCE_WEAPON_DEFAULT_TO), mobType);
                             }
                         } else {
-                            return getEntityDeath(p, e,
+                            return getEntityDeath(deathMessages, p, e,
                                     config.getString(Config.DISABLE_WEAPON_KILL_WITH_NO_CUSTOM_NAME_SOURCE_WEAPON_DEFAULT_TO), mobType);
                         }
                     }
@@ -516,7 +515,7 @@ public class Assets {
                 weaponComp.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_ITEM, hoverEventComponents));
                 tc.addExtra(weaponComp);
             } else {
-                TextComponent tx = new TextComponent(TextComponent.fromLegacyText(colorize(entityDeathPlaceholders(lastColor + lastFont + splitMessage, p, e, hasOwner)) + " "));
+                TextComponent tx = new TextComponent(TextComponent.fromLegacyText(colorize(entityDeathPlaceholders(deathMessages, lastColor + lastFont + splitMessage, p, e, hasOwner)) + " "));
                 tc.addExtra(tx);
                 for (BaseComponent bs : tx.getExtra()) {
                     if (!(bs.getColor() == null)) {
@@ -527,15 +526,15 @@ public class Assets {
             }
         }
         if (sec.length >= 2) {
-            tc.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text(entityDeathPlaceholders(sec[1], p, e, hasOwner))));
+            tc.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text(entityDeathPlaceholders(deathMessages, sec[1], p, e, hasOwner))));
         }
         if (sec.length == 3) {
             if (sec[2].startsWith("COMMAND:")) {
                 String cmd = sec[2].split(":")[1];
-                tc.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/" + entityDeathPlaceholders(cmd, p, e, hasOwner)));
+                tc.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/" + entityDeathPlaceholders(deathMessages, cmd, p, e, hasOwner)));
             } else if (sec[2].startsWith("SUGGEST_COMMAND:")) {
                 String cmd = sec[2].split(":")[1];
-                tc.setClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/" + entityDeathPlaceholders(cmd, p, e, hasOwner)));
+                tc.setClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/" + entityDeathPlaceholders(deathMessages, cmd, p, e, hasOwner)));
             }
         }
         return tc;
@@ -544,16 +543,16 @@ public class Assets {
     public static TextComponent get(boolean gang, PlayerManager pm, LivingEntity mob, String damageCause) {
         Random random = new Random();
 
-        final boolean basicMode = PlayerDeathMessages.getInstance().getConfig().getBoolean("Basic-Mode.Enabled");
+        final boolean basicMode = PlayerdeathMessages.getInstance().getConfig().getBoolean("Basic-Mode.Enabled");
         final String cMode = basicMode ? PDMode.BASIC_MODE.getValue() : PDMode.MOBS.getValue()
                 + "." + mob.getType().getEntityClass().getSimpleName().toLowerCase();
         final String affiliation = gang ? DeathAffiliation.GANG.getValue() : DeathAffiliation.SOLO.getValue();
 
         // List<String> msgs = sortList(getPlayerDeathMessages().getStringList(cMode + "." + affiliation + "." + damageCause), pm.getPlayer());
         List<String> msgs;
-        if (DeathMessages.getInstance().mythicmobsEnabled
-                && DeathMessages.getInstance().mythicMobs.getAPIHelper().isMythicMob(mob.getUniqueId())) {
-            String internalMobType = DeathMessages.getInstance().mythicMobs.getAPIHelper().getMythicMobInstance(mob).getMobType();
+        if (deathMessages.isMythicMobsEnabled()
+                && deathMessages.getMythicMobs().getAPIHelper().isMythicMob(mob.getUniqueId())) {
+            String internalMobType = deathMessages.getMythicMobs().getAPIHelper().getMythicMobInstance(mob).getMobType();
             //Bukkit.broadcastMessage("is myth - " + internalMobType);
             msgs = sortList(getPlayerDeathMessages().getStringList("Custom-Mobs.Mythic-Mobs." + internalMobType + "." + affiliation + "." + damageCause), pm.getPlayer(), mob);
         } else {
@@ -561,10 +560,10 @@ public class Assets {
         }
 
         if (msgs.isEmpty()) {
-            if (config.getBoolean(Config.DEFAULT_NATURAL_DEATH_NOT_DEFINED)) {
+            if (fileStore.getConfig().(Config.DEFAULT_NATURAL_DEATH_NOT_DEFINED)) {
                 return getNaturalDeath(pm, damageCause);
             }
-            if (config.getBoolean(Config.DEFAULT_MELEE_LAST_DAMAGE_NOT_DEFINED)) {
+            if (fileStore.getConfig().(Config.DEFAULT_MELEE_LAST_DAMAGE_NOT_DEFINED)) {
                 return get(gang, pm, mob, getSimpleCause(EntityDamageEvent.DamageCause.ENTITY_ATTACK));
             }
             return null;
@@ -573,7 +572,7 @@ public class Assets {
         String msg = msgs.get(random.nextInt(msgs.size()));
         TextComponent tc = new TextComponent("");
         if (addPrefix) {
-            TextComponent tx = new TextComponent(TextComponent.fromLegacyText(Colorize.colorize(Messages.getInstance().getConfig().getString("Prefix"))));
+            TextComponent tx = new TextComponent(TextComponent.fromLegacyText(Colorize.colorize(messagesConfigFile.getConfig().getString("Prefix"))));
             tc.addExtra(tx);
         }
         String[] sec = msg.split("::");
@@ -616,16 +615,16 @@ public class Assets {
 
     public static TextComponent getProjectile(boolean gang, PlayerManager pm, LivingEntity mob, String projectileDamage) {
         Random random = new Random();
-        final boolean basicMode = PlayerDeathMessages.getInstance().getConfig().getBoolean("Basic-Mode.Enabled");
+        final boolean basicMode = PlayerdeathMessages.getInstance().getConfig().getBoolean("Basic-Mode.Enabled");
         final String cMode = basicMode ? PDMode.BASIC_MODE.getValue() : PDMode.MOBS.getValue()
                 + "." + mob.getType().getEntityClass().getSimpleName().toLowerCase();
         final String affiliation = gang ? DeathAffiliation.GANG.getValue() : DeathAffiliation.SOLO.getValue();
 
         //  List<String> msgs = sortList(getPlayerDeathMessages().getStringList(cMode + "." + affiliation + "." + projectileDamage), pm.getPlayer());
         List<String> msgs;
-        if (DeathMessages.getInstance().mythicmobsEnabled
-                && DeathMessages.getInstance().mythicMobs.getAPIHelper().isMythicMob(mob.getUniqueId())) {
-            String internalMobType = DeathMessages.getInstance().mythicMobs.getAPIHelper().getMythicMobInstance(mob).getMobType();
+        if (deathMessages.isMythicMobsEnabled()
+                && deathMessages.getMythicMobs().getAPIHelper().isMythicMob(mob.getUniqueId())) {
+            String internalMobType = deathMessages.getMythicMobs().getAPIHelper().getMythicMobInstance(mob).getMobType();
             msgs = sortList(getPlayerDeathMessages().getStringList("Custom-Mobs.Mythic-Mobs." + internalMobType + "." + affiliation + "." + projectileDamage), pm.getPlayer(), mob);
         } else {
             msgs = sortList(getPlayerDeathMessages().getStringList(cMode + "." + affiliation + "." + projectileDamage), pm.getPlayer(), mob);
@@ -636,7 +635,7 @@ public class Assets {
         String msg = msgs.get(random.nextInt(msgs.size()));
         TextComponent tc = new TextComponent("");
         if (addPrefix) {
-            TextComponent tx = new TextComponent(TextComponent.fromLegacyText(Colorize.colorize(Messages.getInstance().getConfig().getString("Prefix"))));
+            TextComponent tx = new TextComponent(TextComponent.fromLegacyText(Colorize.colorize(messagesConfigFile.getConfig().getString("Prefix"))));
             tc.addExtra(tx);
         }
         String[] sec = msg.split("::");
@@ -658,7 +657,7 @@ public class Assets {
                 i = mob.getEquipment().getItemInMainHand();
                 String displayName;
                 if (!(i.getItemMeta() == null) && !i.getItemMeta().hasDisplayName() || i.getItemMeta().getDisplayName().equals("")) {
-                    if (config.getBoolean(Config.DISABLE_WEAPON_KILL_WITH_NO_CUSTOM_NAME_ENABLED)) {
+                    if (fileStore.getConfig().(Config.DISABLE_WEAPON_KILL_WITH_NO_CUSTOM_NAME_ENABLED)) {
                         if (!config.getString(Config.DISABLE_WEAPON_KILL_WITH_NO_CUSTOM_NAME_SOURCE_PROJECTILE_DEFAULT_TO)
                                 .equals(projectileDamage)) {
                             return getProjectile(gang, pm, mob, config.getString(Config.DISABLE_WEAPON_KILL_WITH_NO_CUSTOM_NAME_SOURCE_PROJECTILE_DEFAULT_TO));
@@ -707,23 +706,25 @@ public class Assets {
         return tc;
     }
 
-    public static TextComponent getEntityDeathProjectile(Player p, EntityManager em, String projectileDamage, MobType mobType) {
+    public static TextComponent getEntityDeathProjectile(DeathMessages deathMessages, Player p, EntityManager em, String projectileDamage, MobType mobType) {
+        ConfigFile entityDeathMessages = deathMessages.getConfigManager().getEntityDeathMessagesConfig();
+        ConfigFile messagesConfigFile = deathMessages.getConfigManager().getMessagesConfig();
         Random random = new Random();
         String entityName = em.getEntity().getType().getEntityClass().getSimpleName().toLowerCase();
         List<String> msgs;
         if (mobType.equals(MobType.MYTHIC_MOB)) {
             String internalMobType = null;
-            if (DeathMessages.getInstance().mythicmobsEnabled
-                    && DeathMessages.getInstance().mythicMobs.getAPIHelper().isMythicMob(em.getEntityUUID())) {
-                internalMobType = DeathMessages.getInstance().mythicMobs.getAPIHelper().getMythicMobInstance(em.getEntity()).getMobType();
+            if (deathMessages.isMythicMobsEnabled()
+                    && deathMessages.getMythicMobs().getAPIHelper().isMythicMob(em.getEntityUUID())) {
+                internalMobType = deathMessages.getMythicMobs().getAPIHelper().getMythicMobInstance(em.getEntity()).getMobType();
             }
-            msgs = sortList(getEntityDeathMessages().getStringList("Mythic-Mobs-Entities." + internalMobType + "." + projectileDamage), p, em.getEntity());
+            msgs = sortList(deathMessages, entityDeathMessages.getConfig().getStringList("Mythic-Mobs-Entities." + internalMobType + "." + projectileDamage), p, em.getEntity());
         } else {
-            msgs = sortList(getEntityDeathMessages().getStringList("Entities." + entityName + "." + projectileDamage), p, em.getEntity());
+            msgs = sortList(deathMessages, entityDeathMessages.getConfig().getStringList("Entities." + entityName + "." + projectileDamage), p, em.getEntity());
         }
         if (msgs.isEmpty()) {
-            if (config.getBoolean(Config.DEFAULT_MELEE_LAST_DAMAGE_NOT_DEFINED)) {
-                return getEntityDeath(p, em.getEntity(), getSimpleCause(EntityDamageEvent.DamageCause.ENTITY_ATTACK), mobType);
+            if (fileStore.getConfig().(Config.DEFAULT_MELEE_LAST_DAMAGE_NOT_DEFINED)) {
+                return getEntityDeath(deathMessages, p, em.getEntity(), getSimpleCause(EntityDamageEvent.DamageCause.ENTITY_ATTACK), mobType);
             }
             return null;
         }
@@ -736,7 +737,7 @@ public class Assets {
         String msg = msgs.get(random.nextInt(msgs.size()));
         TextComponent tc = new TextComponent("");
         if (addPrefix) {
-            TextComponent tx = new TextComponent(TextComponent.fromLegacyText(Colorize.colorize(Messages.getInstance().getConfig().getString("Prefix"))));
+            TextComponent tx = new TextComponent(TextComponent.fromLegacyText(Colorize.colorize(messagesConfigFile.getConfig().getString("Prefix"))));
             tc.addExtra(tx);
         }
         String[] sec = msg.split("::");
@@ -757,11 +758,10 @@ public class Assets {
                 ItemStack i = p.getEquipment().getItemInMainHand();
                 String displayName;
                 if (!(i.getItemMeta() == null) && !i.getItemMeta().hasDisplayName() || i.getItemMeta().getDisplayName().equals("")) {
-                    if (config.getBoolean(Config.DISABLE_WEAPON_KILL_WITH_NO_CUSTOM_NAME_ENABLED)) {
+                    if (fileStore.getConfig().(Config.DISABLE_WEAPON_KILL_WITH_NO_CUSTOM_NAME_ENABLED)) {
                         if (!config.getString(Config.DISABLE_WEAPON_KILL_WITH_NO_CUSTOM_NAME_SOURCE_PROJECTILE_DEFAULT_TO)
                                 .equals(projectileDamage)) {
-                            return getEntityDeathProjectile(p, em,
-                                    config.getString(Config.DISABLE_WEAPON_KILL_WITH_NO_CUSTOM_NAME_SOURCE_PROJECTILE_DEFAULT_TO), mobType);
+                            return getEntityDeathProjectile(deathMessages, p, em, config.getString(Config.DISABLE_WEAPON_KILL_WITH_NO_CUSTOM_NAME_SOURCE_PROJECTILE_DEFAULT_TO), mobType);
                         }
                     }
                     displayName = Utils.convertString(i.getType().name());
@@ -782,7 +782,7 @@ public class Assets {
                 weaponComp.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_ITEM, hoverEventComponents));
                 tc.addExtra(weaponComp);
             } else {
-                TextComponent tx = new TextComponent(TextComponent.fromLegacyText(Colorize.colorize(entityDeathPlaceholders(lastColor + lastFont + splitMessage, p, em.getEntity(), hasOwner)) + " "));
+                TextComponent tx = new TextComponent(TextComponent.fromLegacyText(Colorize.colorize(entityDeathPlaceholders(deathMessages, lastColor + lastFont + splitMessage, p, em.getEntity(), hasOwner)) + " "));
                 tc.addExtra(tx);
                 for (BaseComponent bs : tx.getExtra()) {
                     if (!(bs.getColor() == null)) {
@@ -793,21 +793,23 @@ public class Assets {
             }
         }
         if (sec.length >= 2) {
-            tc.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text(entityDeathPlaceholders(sec[1], p, em.getEntity(), hasOwner))));
+            tc.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text(entityDeathPlaceholders(deathMessages, sec[1], p, em.getEntity(), hasOwner))));
         }
         if (sec.length == 3) {
             if (sec[2].startsWith("COMMAND:")) {
                 String cmd = sec[2].split(":")[1];
-                tc.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/" + entityDeathPlaceholders(cmd, p, em.getEntity(), hasOwner)));
+                tc.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/" + entityDeathPlaceholders(deathMessages, cmd, p, em.getEntity(), hasOwner)));
             } else if (sec[2].startsWith("SUGGEST_COMMAND:")) {
                 String cmd = sec[2].split(":")[1];
-                tc.setClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/" + entityDeathPlaceholders(cmd, p, em.getEntity(), hasOwner)));
+                tc.setClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/" + entityDeathPlaceholders(deathMessages, cmd, p, em.getEntity(), hasOwner)));
             }
         }
         return tc;
     }
 
-    public static TextComponent getEntityDeath(Player player, Entity entity, String damageCause, MobType mobType) {
+    public static TextComponent getEntityDeath(DeathMessages deathMessages, Player player, Entity entity, String damageCause, MobType mobType) {
+        ConfigFile entityDeathMessages = deathMessages.getConfigManager().getEntityDeathMessagesConfig();
+        ConfigFile messagesConfigFile = deathMessages.getConfigManager().getMessagesConfig();
         Random random = new Random();
         boolean hasOwner = false;
         if (entity instanceof Tameable tameable) {
@@ -817,21 +819,18 @@ public class Assets {
         }
         List<String> msgs;
         if (hasOwner) {
-            msgs = sortList(getEntityDeathMessages().getStringList("Entities."
-                    + entity.getType().getEntityClass().getSimpleName().toLowerCase() + ".Tamed"), player, entity);
+            msgs = sortList(deathMessages, entityDeathMessages.getConfig().getStringList("Entities." + entity.getType().getEntityClass().getSimpleName().toLowerCase() + ".Tamed"), player, entity);
         } else {
             if (mobType.equals(MobType.MYTHIC_MOB)) {
                 String internalMobType = null;
-                if (DeathMessages.getInstance().mythicmobsEnabled
-                        && DeathMessages.getInstance().mythicMobs.getAPIHelper().isMythicMob(entity.getUniqueId())) {
-                    internalMobType = DeathMessages.getInstance().mythicMobs.getAPIHelper().getMythicMobInstance(entity).getMobType();
+                if (deathMessages.isMythicMobsEnabled() && deathMessages.getMythicMobs().getAPIHelper().isMythicMob(entity.getUniqueId())) {
+                    internalMobType = deathMessages.getMythicMobs().getAPIHelper().getMythicMobInstance(entity).getMobType();
                 } else {
                     //reserved
                 }
-                msgs = sortList(getEntityDeathMessages().getStringList("Mythic-Mobs-Entities." + internalMobType + "." + damageCause), player, entity);
+                msgs = sortList(deathMessages, entityDeathMessages.getConfig().getStringList("Mythic-Mobs-Entities." + internalMobType + "." + damageCause), player, entity);
             } else {
-                msgs = sortList(getEntityDeathMessages().getStringList("Entities."
-                        + entity.getType().getEntityClass().getSimpleName().toLowerCase() + "." + damageCause), player, entity);
+                msgs = sortList(deathMessages, entityDeathMessages.getConfig().getStringList("Entities." + entity.getType().getEntityClass().getSimpleName().toLowerCase() + "." + damageCause), player, entity);
             }
         }
         if (msgs.isEmpty()) {
@@ -841,7 +840,7 @@ public class Assets {
         String msg = msgs.get(random.nextInt(msgs.size()));
         TextComponent tc = new TextComponent("");
         if (addPrefix) {
-            TextComponent tx = new TextComponent(TextComponent.fromLegacyText(Colorize.colorize(Messages.getInstance().getConfig().getString("Prefix"))));
+            TextComponent tx = new TextComponent(TextComponent.fromLegacyText(Colorize.colorize(messagesConfigFile.getConfig().getString("Prefix"))));
             tc.addExtra(tx);
         }
         String[] sec = msg.split("::");
@@ -858,7 +857,7 @@ public class Assets {
         String lastColor = "";
         String lastFont = "";
         for (String splitMessage : firstSection.split(" ")) {
-            TextComponent tx = new TextComponent(TextComponent.fromLegacyText(Colorize.colorize(entityDeathPlaceholders(lastColor + lastFont + splitMessage, player, entity, hasOwner)) + " "));
+            TextComponent tx = new TextComponent(TextComponent.fromLegacyText(Colorize.colorize(entityDeathPlaceholders(deathMessages, lastColor + lastFont + splitMessage, player, entity, hasOwner)) + " "));
             tc.addExtra(tx);
             for (BaseComponent bs : tx.getExtra()) {
                 if (!(bs.getColor() == null)) {
@@ -868,21 +867,21 @@ public class Assets {
             }
         }
         if (sec.length >= 2) {
-            tc.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text(entityDeathPlaceholders(sec[1], player, entity, hasOwner))));
+            tc.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text(entityDeathPlaceholders(deathMessages, sec[1], player, entity, hasOwner))));
         }
         if (sec.length == 3) {
             if (sec[2].startsWith("COMMAND:")) {
                 String cmd = sec[2].split(":")[1];
-                tc.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/" + entityDeathPlaceholders(cmd, player, entity, hasOwner)));
+                tc.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/" + entityDeathPlaceholders(deathMessages, cmd, player, entity, hasOwner)));
             } else if (sec[2].startsWith("SUGGEST_COMMAND:")) {
                 String cmd = sec[2].split(":")[1];
-                tc.setClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/" + entityDeathPlaceholders(cmd, player, entity, hasOwner)));
+                tc.setClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/" + entityDeathPlaceholders(deathMessages, cmd, player, entity, hasOwner)));
             }
         }
         return tc;
     }
 
-    public static List<String> sortList(List<String> list, Player player, Entity killer) {
+    public static List<String> sortList(DeathMessages deathMessages, List<String> list, Player player, Entity killer) {
         List<String> newList = list;
         List<String> returnList = new ArrayList<>();
         for (String s : list) {
@@ -910,10 +909,10 @@ public class Assets {
                 Matcher m = Pattern.compile("REGION\\[([^)]+)]").matcher(s);
                 while (m.find()) {
                     String regionID = m.group(1);
-                    if (DeathMessages.worldGuardExtension == null) {
+                    if (deathMessages.getWorldGuardExtension() == null) {
                         continue;
                     }
-                    if (DeathMessages.worldGuardExtension.isInRegion(player.getPlayer(), regionID)) {
+                    if (deathMessages.getWorldGuardExtension().isInRegion(player.getPlayer(), regionID)) {
                         returnList.add(s.replace("REGION[" + regionID + "]", ""));
                     }
                 }
@@ -927,16 +926,17 @@ public class Assets {
         return newList;
     }
 
-    public static String entityDeathPlaceholders(String msg, Player player, Entity entity, boolean owner) {
+    public static String entityDeathPlaceholders(DeathMessages deathMessages, String msg, Player player, Entity entity, boolean owner) {
+        ConfigFile messagesConfigFile = deathMessages.getConfigManager().getMessagesConfig();
         msg = colorize(msg
-                .replaceAll("%entity%", Messages.getInstance().getConfig().getString("Mobs."
+                .replaceAll("%entity%", messagesConfigFile.getConfig().getString("Mobs."
                         + entity.getType().toString().toLowerCase()))
-                .replaceAll("%entity_display%", entity.getCustomName() == null ? Messages.getInstance().getConfig().getString("Mobs."
+                .replaceAll("%entity_display%", entity.getCustomName() == null ? messagesConfigFile.getConfig().getString("Mobs."
                         + entity.getType().toString().toLowerCase()) : entity.getCustomName())
                 .replaceAll("%killer%", player.getName())
                 .replaceAll("%killer_display%", player.getDisplayName())
                 .replaceAll("%world%", entity.getLocation().getWorld().getName())
-                .replaceAll("%world_environment%", getEnvironment(entity.getLocation().getWorld().getEnvironment()))
+                .replaceAll("%world_environment%", getEnvironment(messagesConfigFile, entity.getLocation().getWorld().getEnvironment()))
                 .replaceAll("%x%", String.valueOf(entity.getLocation().getBlock().getX()))
                 .replaceAll("%y%", String.valueOf(entity.getLocation().getBlock().getY()))
                 .replaceAll("%z%", String.valueOf(entity.getLocation().getBlock().getZ())));
@@ -950,63 +950,65 @@ public class Assets {
         try {
             msg = msg.replaceAll("%biome%", entity.getLocation().getBlock().getBiome().name());
         } catch (NullPointerException e) {
-            DeathMessages.getInstance().getLogger().severe("Custom Biome detected. Using 'Unknown' for a biome name.");
-            DeathMessages.getInstance().getLogger().severe("Custom Biomes are not supported yet.'");
+            deathMessages.getLogger().severe("Custom Biome detected. Using 'Unknown' for a biome name.");
+            deathMessages.getLogger().severe("Custom Biomes are not supported yet.'");
             msg = msg.replaceAll("%biome%", "Unknown");
         }
-        if (DeathMessages.getInstance().placeholderAPIEnabled) {
+        if (deathMessages.isPlaceholderAPIEnabled()) {
             msg = PlaceholderAPI.setPlaceholders(player.getPlayer(), msg);
         }
         return msg;
     }
 
-    public static String playerDeathPlaceholders(String msg, PlayerManager pm, LivingEntity mob) {
+    public static String playerDeathPlaceholders(DeathMessages deathMessages, String msg, PlayerManager pm, LivingEntity mob) {
+        ConfigFile messagesConfigFile = deathMessages.getConfigManager().getMessagesConfig();
+        FileStore fileStore = deathMessages.getFileStore();
         if (mob == null) {
             msg = colorize(msg
                     .replaceAll("%player%", pm.getName())
                     .replaceAll("%player_display%", pm.getPlayer().getDisplayName())
                     .replaceAll("%world%", pm.getLastLocation().getWorld().getName())
-                    .replaceAll("%world_environment%", getEnvironment(pm.getLastLocation().getWorld().getEnvironment()))
+                    .replaceAll("%world_environment%", getEnvironment(messagesConfigFile, pm.getLastLocation().getWorld().getEnvironment()))
                     .replaceAll("%x%", String.valueOf(pm.getLastLocation().getBlock().getX()))
                     .replaceAll("%y%", String.valueOf(pm.getLastLocation().getBlock().getY()))
                     .replaceAll("%z%", String.valueOf(pm.getLastLocation().getBlock().getZ())));
             try {
                 msg = msg.replaceAll("%biome%", pm.getLastLocation().getBlock().getBiome().name());
             } catch (NullPointerException e) {
-                DeathMessages.getInstance().getLogger().severe("Custom Biome detected. Using 'Unknown' for a biome name.");
-                DeathMessages.getInstance().getLogger().severe("Custom Biomes are not supported yet.'");
+                deathMessages.getLogger().severe("Custom Biome detected. Using 'Unknown' for a biome name.");
+                deathMessages.getLogger().severe("Custom Biomes are not supported yet.'");
                 msg = msg.replaceAll("%biome%", "Unknown");
             }
         } else {
             String mobName = mob.getName();
-            if (config.getBoolean(Config.RENAME_MOBS_ENABLED)) {
-                String[] chars = config.getString(Config.RENAME_MOBS_IF_CONTAINS).split("(?!^)");
+            if (fileStore.getConfig().getBoolean(Config.RENAME_MOBS_ENABLED)) {
+                String[] chars = fileStore.getConfig().getString(Config.RENAME_MOBS_IF_CONTAINS).split("(?!^)");
                 for (String ch : chars) {
                     if (mobName.contains(ch)) {
-                        mobName = Messages.getInstance().getConfig().getString("Mobs." + mob.getType().toString().toLowerCase());
+                        mobName = messagesConfigFile.getConfig().getString("Mobs." + mob.getType().toString().toLowerCase());
                         break;
                     }
                 }
             }
-            if (!(mob instanceof Player) && config.getBoolean(Config.DISABLE_NAMED_MOBS)) {
-                mobName = Messages.getInstance().getConfig().getString("Mobs." + mob.getType().toString().toLowerCase());
+            if (!(mob instanceof Player) && fileStore.getConfig().getBoolean(Config.DISABLE_NAMED_MOBS)) {
+                mobName = messagesConfigFile.getConfig().getString("Mobs." + mob.getType().toString().toLowerCase());
             }
             msg = msg
                     .replaceAll("%player%", pm.getName())
                     .replaceAll("%player_display%", pm.getPlayer().getDisplayName())
                     .replaceAll("%killer%", mobName)
-                    .replaceAll("%killer_type%", Messages.getInstance().getConfig().getString("Mobs."
+                    .replaceAll("%killer_type%", messagesConfigFile.getConfig().getString("Mobs."
                             + mob.getType().toString().toLowerCase()))
                     .replaceAll("%world%", pm.getLastLocation().getWorld().getName())
-                    .replaceAll("%world_environment%", getEnvironment(pm.getLastLocation().getWorld().getEnvironment()))
+                    .replaceAll("%world_environment%", getEnvironment(messagesConfigFile, pm.getLastLocation().getWorld().getEnvironment()))
                     .replaceAll("%x%", String.valueOf(pm.getLastLocation().getBlock().getX()))
                     .replaceAll("%y%", String.valueOf(pm.getLastLocation().getBlock().getY()))
                     .replaceAll("%z%", String.valueOf(pm.getLastLocation().getBlock().getZ()));
             try {
                 msg = msg.replaceAll("%biome%", pm.getLastLocation().getBlock().getBiome().name());
             } catch (NullPointerException e) {
-                DeathMessages.getInstance().getLogger().severe("Custom Biome detected. Using 'Unknown' for a biome name.");
-                DeathMessages.getInstance().getLogger().severe("Custom Biomes are not supported yet.'");
+                deathMessages.getLogger().severe("Custom Biome detected. Using 'Unknown' for a biome name.");
+                deathMessages.getLogger().severe("Custom Biomes are not supported yet.'");
                 msg = msg.replaceAll("%biome%", "Unknown");
             }
 
@@ -1014,22 +1016,22 @@ public class Assets {
                 msg = msg.replaceAll("%killer_display%", p.getDisplayName());
             }
         }
-        if (DeathMessages.getInstance().placeholderAPIEnabled) {
+        if (deathMessages.isPlaceholderAPIEnabled()) {
             msg = PlaceholderAPI.setPlaceholders(pm.getPlayer(), msg);
         }
         return msg;
     }
 
-    public static String getEnvironment(World.Environment environment) {
+    public static String getEnvironment(ConfigFile messagesConfigFile, World.Environment environment) {
         return switch (environment) {
             case NORMAL ->
-                Messages.getInstance().getConfig().getString("Environment.normal");
+                messagesConfigFile.getConfig().getString("Environment.normal");
             case NETHER ->
-                Messages.getInstance().getConfig().getString("Environment.nether");
+                messagesConfigFile.getConfig().getString("Environment.nether");
             case THE_END ->
-                Messages.getInstance().getConfig().getString("Environment.the_end");
+                messagesConfigFile.getConfig().getString("Environment.the_end");
             default ->
-                Messages.getInstance().getConfig().getString("Environment.unknown");
+                messagesConfigFile.getConfig().getString("Environment.unknown");
         };
     }
 

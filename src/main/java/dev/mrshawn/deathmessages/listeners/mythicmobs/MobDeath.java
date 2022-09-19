@@ -25,8 +25,10 @@ public class MobDeath implements Listener {
     private ConfigFile settingsConfigFile;
     private FileStore fileStore;
     private ConfigFile entityDeathMessagesConfigFile;
+    private DeathMessages deathMessages;
 
     public MobDeath(DeathMessages deathMessages) {
+        this.deathMessages = deathMessages;
         fileStore = deathMessages.getFileStore();
         settingsConfigFile = deathMessages.getConfigManager().getSettingsConfig();
         entityDeathMessagesConfigFile = deathMessages.getConfigManager().getEntityDeathMessagesConfig();
@@ -46,7 +48,7 @@ public class MobDeath implements Listener {
                 }
 
                 PlayerManager damager = em.getLastPlayerDamager();
-                TextComponent tx = Assets.entityDeathMessage(em, MobType.MYTHIC_MOB);
+                TextComponent tx = Assets.entityDeathMessage(deathMessages, em, MobType.MYTHIC_MOB);
                 if (tx == null) {
                     return;
                 }

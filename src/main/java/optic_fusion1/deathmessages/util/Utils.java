@@ -1,5 +1,7 @@
 package optic_fusion1.deathmessages.util;
 
+import dev.mrshawn.deathmessages.files.Config;
+import dev.mrshawn.deathmessages.files.FileSettings;
 import static dev.mrshawn.deathmessages.utils.Assets.itemMaterialIsWeapon;
 import static dev.mrshawn.deathmessages.utils.Assets.itemNameIsWeapon;
 import net.md_5.bungee.api.ChatColor;
@@ -46,10 +48,7 @@ public final class Utils {
 
     public static boolean isClimbable(Material material) {
         final String name = material.name();
-        return name.contains("LADDER")
-                || name.contains("VINE")
-                || name.contains("SCAFFOLDING")
-                || name.contains("TRAPDOOR");
+        return name.contains("LADDER") || name.contains("VINE") || name.contains("SCAFFOLDING") || name.contains("TRAPDOOR");
     }
 
     public static boolean isPlayer(String name) {
@@ -60,10 +59,8 @@ public final class Utils {
         return Bukkit.getPlayer(name);
     }
 
-    public static boolean isWeapon(ItemStack itemStack) {
-        return isWeapon(itemStack.getType())
-                && !itemNameIsWeapon(itemStack)
-                && !itemMaterialIsWeapon(itemStack);
+    public static boolean isWeapon(FileSettings<Config> config, ItemStack itemStack) {
+        return isWeapon(itemStack.getType()) && !itemNameIsWeapon(config, itemStack) && !itemMaterialIsWeapon(config, itemStack);
     }
 
     public static boolean isWeapon(Material material) {

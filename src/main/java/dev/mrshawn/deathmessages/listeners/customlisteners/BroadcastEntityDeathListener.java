@@ -45,7 +45,7 @@ public class BroadcastEntityDeathListener implements Listener {
         }
         if (!e.isCancelled()) {
             if (messagesConfig.getConfig().getBoolean("Console.Enabled")) {
-                String message = Assets.entityDeathPlaceholders(messagesConfig.getConfig().getString("Console.Message"), pm.getPlayer(), e.getEntity(), hasOwner);
+                String message = Assets.entityDeathPlaceholders(deathMessages, messagesConfig.getConfig().getString("Console.Message"), pm.getPlayer(), e.getEntity(), hasOwner);
                 message = message.replaceAll("%message%", Matcher.quoteReplacement(e.getTextComponent().toLegacyText()));
                 Bukkit.getConsoleSender().sendMessage(message);
             }

@@ -65,28 +65,28 @@ public class EntityDeath implements Listener {
             if (!(pm.getLastEntityDamager() instanceof LivingEntity) || pm.getLastEntityDamager() == e.getEntity()) {
                 //Natural Death
                 if (pm.getLastExplosiveEntity() instanceof EnderCrystal) {
-                    callEvent(Assets.getNaturalDeath(pm, "End-Crystal"), p);
+                    callEvent(Assets.getNaturalDeath(deathMessages, pm, "End-Crystal"), p);
                 } else if (pm.getLastExplosiveEntity() instanceof TNTPrimed) {
-                    callEvent(Assets.getNaturalDeath(pm, "TNT"), p);
+                    callEvent(Assets.getNaturalDeath(deathMessages, pm, "TNT"), p);
                 } else if (pm.getLastExplosiveEntity() instanceof Firework) {
-                    callEvent(Assets.getNaturalDeath(pm, "Firework"), p);
+                    callEvent(Assets.getNaturalDeath(deathMessages, pm, "Firework"), p);
                 } else if (pm.getLastClimbing() != null && pm.getLastDamage().equals(EntityDamageEvent.DamageCause.FALL)) {
-                    callEvent(Assets.getNaturalDeath(pm, "Climbable"), p);
+                    callEvent(Assets.getNaturalDeath(deathMessages, pm, "Climbable"), p);
                 } else if (pm.getLastDamage().equals(EntityDamageEvent.DamageCause.BLOCK_EXPLOSION)) {
                     ExplosionManager explosionManager = ExplosionManager.getManagerIfEffected(p.getUniqueId());
                     if (explosionManager == null) {
                         return;
                     }
-                    TextComponent tx = explosionManager.getMaterial().name().contains("BED") ? Assets.getNaturalDeath(pm, "Bed")
-                            : explosionManager.getMaterial() == Material.RESPAWN_ANCHOR ? Assets.getNaturalDeath(pm, "Respawn-Anchor") : null;
+                    TextComponent tx = explosionManager.getMaterial().name().contains("BED") ? Assets.getNaturalDeath(deathMessages, pm, "Bed")
+                            : explosionManager.getMaterial() == Material.RESPAWN_ANCHOR ? Assets.getNaturalDeath(deathMessages, pm, "Respawn-Anchor") : null;
                     if (tx == null) {
                         return;
                     }
                     callEvent(tx, p);
                 } else if (pm.getLastDamage().equals(EntityDamageEvent.DamageCause.PROJECTILE)) {
-                    callEvent(Assets.getNaturalDeath(pm, Utils.getSimpleProjectile(pm.getLastProjectileEntity())), p);
+                    callEvent(Assets.getNaturalDeath(deathMessages, pm, Utils.getSimpleProjectile(pm.getLastProjectileEntity())), p);
                 } else {
-                    callEvent(Assets.getNaturalDeath(pm, Utils.getSimpleCause(pm.getLastDamage())), p);
+                    callEvent(Assets.getNaturalDeath(deathMessages, pm, Utils.getSimpleCause(pm.getLastDamage())), p);
                 }
             } else {
                 //Killed by mob
@@ -137,7 +137,7 @@ public class EntityDeath implements Listener {
 
             PlayerManager damager = em.getLastPlayerDamager();
 
-            TextComponent tx = Assets.entityDeathMessage(em, mobType);
+            TextComponent tx = Assets.entityDeathMessage(deathMessages, em, mobType);
             if (tx == null) {
                 return;
             }
