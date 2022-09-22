@@ -63,6 +63,10 @@ public final class Utils {
         return isWeapon(itemStack.getType()) && !itemNameIsWeapon(config, itemStack) && !itemMaterialIsWeapon(config, itemStack);
     }
 
+    public static boolean isWeapon(ItemStack item) {
+        return isWeapon(item.getType());
+    }
+
     public static boolean isWeapon(Material material) {
         String materialName = material.toString();
         return !materialName.contains("SHOVEL")
